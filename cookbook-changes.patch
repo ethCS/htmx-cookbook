@@ -1,0 +1,1527 @@
+diff --git a/index.html b/index.html
+index 7d2636d..c145c34 100644
+--- a/index.html
++++ b/index.html
+@@ -7,6 +7,9 @@
+     <title>cookbook</title>
+   </head>
+   <body>
++    <script>
++      (function(){var t=localStorage.getItem("theme");var d=t==="light"||t==="dark"?t:matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",d)})();
++    </script>
+     <div id="root"></div>
+     <script type="module" src="/src/main.jsx"></script>
+   </body>
+diff --git a/package-lock.json b/package-lock.json
+index 4d8bfa0..e2c1165 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -60,6 +60,7 @@
+       "integrity": "sha512-CGOfOJqWjg2qW/Mb6zNsDm+u5vFQ8DxXfbM09z69p5Z6+mE1ikP2jUXw+j42Pf1XTYED2Rni5f95npYeuwMDQA==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@babel/code-frame": "^7.29.0",
+         "@babel/generator": "^7.29.0",
+@@ -973,6 +974,7 @@
+       "resolved": "https://registry.npmjs.org/@firebase/app/-/app-0.14.9.tgz",
+       "integrity": "sha512-3gtUX0e584MYkKBQMgSECMvE1Dwzg+eONefDQ0wxVSe5YMBsZwdN5pL7UapwWBlV8+i8QCztF9TP947tEjZAGA==",
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "@firebase/component": "0.7.1",
+         "@firebase/logger": "0.5.0",
+@@ -1039,6 +1041,7 @@
+       "resolved": "https://registry.npmjs.org/@firebase/app-compat/-/app-compat-0.5.9.tgz",
+       "integrity": "sha512-e5LzqjO69/N2z7XcJeuMzIp4wWnW696dQeaHAUpQvGk89gIWHAIvG6W+mA3UotGW6jBoqdppEJ9DnuwbcBByug==",
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "@firebase/app": "0.14.9",
+         "@firebase/component": "0.7.1",
+@@ -1054,7 +1057,8 @@
+       "version": "0.9.3",
+       "resolved": "https://registry.npmjs.org/@firebase/app-types/-/app-types-0.9.3.tgz",
+       "integrity": "sha512-kRVpIl4vVGJ4baogMDINbyrIOtOxqhkZQg4jTq3l8Lw6WSk0xfpEYzezFu+Kl4ve4fbPl79dvwRtaFqAC/ucCw==",
+-      "license": "Apache-2.0"
++      "license": "Apache-2.0",
++      "peer": true
+     },
+     "node_modules/@firebase/auth": {
+       "version": "1.12.1",
+@@ -1505,6 +1509,7 @@
+       "integrity": "sha512-/gnejm7MKkVIXnSJGpc9L2CvvvzJvtDPeAEq5jAwgVlf/PeNxot+THx/bpD20wQ8uL5sz0xqgXy1nisOYMU+mw==",
+       "hasInstallScript": true,
+       "license": "Apache-2.0",
++      "peer": true,
+       "dependencies": {
+         "tslib": "^2.1.0"
+       },
+@@ -2295,6 +2300,70 @@
+         "node": ">=14.0.0"
+       }
+     },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/core": {
++      "version": "1.8.1",
++      "dev": true,
++      "inBundle": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/wasi-threads": "1.1.0",
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/runtime": {
++      "version": "1.8.1",
++      "dev": true,
++      "inBundle": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@emnapi/wasi-threads": {
++      "version": "1.1.0",
++      "dev": true,
++      "inBundle": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@napi-rs/wasm-runtime": {
++      "version": "1.1.1",
++      "dev": true,
++      "inBundle": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "@emnapi/core": "^1.7.1",
++        "@emnapi/runtime": "^1.7.1",
++        "@tybys/wasm-util": "^0.10.1"
++      },
++      "funding": {
++        "type": "github",
++        "url": "https://github.com/sponsors/Brooooooklyn"
++      }
++    },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/@tybys/wasm-util": {
++      "version": "0.10.1",
++      "dev": true,
++      "inBundle": true,
++      "license": "MIT",
++      "optional": true,
++      "dependencies": {
++        "tslib": "^2.4.0"
++      }
++    },
++    "node_modules/@tailwindcss/oxide-wasm32-wasi/node_modules/tslib": {
++      "version": "2.8.1",
++      "dev": true,
++      "inBundle": true,
++      "license": "0BSD",
++      "optional": true
++    },
+     "node_modules/@tailwindcss/oxide-win32-arm64-msvc": {
+       "version": "4.2.1",
+       "resolved": "https://registry.npmjs.org/@tailwindcss/oxide-win32-arm64-msvc/-/oxide-win32-arm64-msvc-4.2.1.tgz",
+@@ -2418,6 +2487,7 @@
+       "integrity": "sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "csstype": "^3.2.2"
+       }
+@@ -2459,6 +2529,7 @@
+       "integrity": "sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "bin": {
+         "acorn": "bin/acorn"
+       },
+@@ -2575,6 +2646,7 @@
+         }
+       ],
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "baseline-browser-mapping": "^2.9.0",
+         "caniuse-lite": "^1.0.30001759",
+@@ -2715,7 +2787,8 @@
+       "version": "3.2.3",
+       "resolved": "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz",
+       "integrity": "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==",
+-      "license": "MIT"
++      "license": "MIT",
++      "peer": true
+     },
+     "node_modules/debug": {
+       "version": "4.4.3",
+@@ -2849,6 +2922,7 @@
+       "integrity": "sha512-VmQ+sifHUbI/IcSopBCF/HO3YiHQx/AVd3UVyYL6weuwW+HvON9VYn5l6Zl1WZzPWXPNZrSQpxwkkZ/VuvJZzg==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "@eslint-community/eslint-utils": "^4.8.0",
+         "@eslint-community/regexpp": "^4.12.1",
+@@ -3931,6 +4005,7 @@
+       "integrity": "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=12"
+       },
+@@ -4016,6 +4091,7 @@
+       "resolved": "https://registry.npmjs.org/react/-/react-19.2.4.tgz",
+       "integrity": "sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==",
+       "license": "MIT",
++      "peer": true,
+       "engines": {
+         "node": ">=0.10.0"
+       }
+@@ -4025,6 +4101,7 @@
+       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.2.4.tgz",
+       "integrity": "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==",
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "scheduler": "^0.27.0"
+       },
+@@ -4398,6 +4475,7 @@
+       "integrity": "sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "dependencies": {
+         "esbuild": "^0.27.0",
+         "fdir": "^6.5.0",
+@@ -4601,6 +4679,7 @@
+       "integrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+       "dev": true,
+       "license": "MIT",
++      "peer": true,
+       "funding": {
+         "url": "https://github.com/sponsors/colinhacks"
+       }
+diff --git a/src/components/layout/Layout.jsx b/src/components/layout/Layout.jsx
+index 96a934a..726a4e7 100644
+--- a/src/components/layout/Layout.jsx
++++ b/src/components/layout/Layout.jsx
+@@ -3,7 +3,7 @@ import Navbar from "./Navbar";
+ 
+ export default function Layout() {
+   return (
+-    <div className="min-h-screen bg-stone-950 text-stone-100">
++    <div className="min-h-screen bg-page text-heading">
+       <Navbar />
+       <main>
+         <Outlet />
+diff --git a/src/components/layout/Navbar.jsx b/src/components/layout/Navbar.jsx
+index 9f17009..6d85cf6 100644
+--- a/src/components/layout/Navbar.jsx
++++ b/src/components/layout/Navbar.jsx
+@@ -1,30 +1,97 @@
++import { useState, useRef, useEffect } from "react";
+ import { Link, useNavigate } from "react-router-dom";
++import { Sun, Moon, Monitor } from "lucide-react";
+ import { useAuth } from "../../context/AuthContext";
++import { useTheme } from "../../context/ThemeContext";
++import { mealdb } from "../../services/mealdb";
+ import toast from "react-hot-toast";
+ 
+ export default function Navbar() {
+   const { user, logout } = useAuth();
++  const { theme, setTheme } = useTheme();
+   const navigate = useNavigate();
++  const [open, setOpen] = useState(false);
++  const menuRef = useRef(null);
++
++  useEffect(() => {
++    const close = (e) => {
++      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
++    };
++    document.addEventListener("mousedown", close);
++    return () => document.removeEventListener("mousedown", close);
++  }, []);
+ 
+   const handleLogout = async () => {
++    setOpen(false);
+     await logout();
+     toast.success("Logged out");
+     navigate("/");
+   };
+ 
++  const initial = user?.email?.[0]?.toUpperCase() || "?";
++
++  const themeOptions = [
++    { value: "light", Icon: Sun },
++    { value: "dark", Icon: Moon },
++    { value: "system", Icon: Monitor },
++  ];
++
+   return (
+-    <nav className="border-b border-stone-800 px-6 py-4 flex items-center justify-between">
+-      <Link to="/" className="text-xl font-bold tracking-tight text-amber-400">
++    <nav className="border-b border-edge px-6 py-4 flex items-center justify-between">
++      <Link to="/" onClick={() => mealdb.invalidateRandom()} className="text-xl font-bold tracking-tight text-accent">
+         CSCI322 Cookbook
+       </Link>
+-      <div className="flex gap-6 text-sm text-stone-400">
+-        <Link to="/search" className="hover:text-stone-100 transition-colors">Explore</Link>
+-        {user && <Link to="/favorites" className="hover:text-stone-100 transition-colors">Favorites</Link>}
+-        {user && <Link to="/my-recipes" className="hover:text-stone-100 transition-colors">My Recipes</Link>}
+-        {user
+-          ? <button onClick={handleLogout} className="hover:text-stone-100 transition-colors">Log out</button>
+-          : <Link to="/auth" className="hover:text-stone-100 transition-colors">Sign in</Link>
+-        }
++      <div className="flex items-center gap-6 text-sm text-dim">
++        <Link to="/search" className="hover:text-heading transition-colors">Explore</Link>
++        {user && <Link to="/favorites" className="hover:text-heading transition-colors">Favorites</Link>}
++        {user && <Link to="/my-recipes" className="hover:text-heading transition-colors">My Recipes</Link>}
++
++        {user ? (
++          <div className="relative" ref={menuRef}>
++            <button
++              onClick={() => setOpen(!open)}
++              className="w-8 h-8 rounded-full bg-accent-solid text-on-accent font-semibold text-xs flex items-center justify-center hover:bg-accent-solid-hover transition-colors"
++            >
++              {initial}
++            </button>
++
++            {open && (
++              <div className="absolute right-0 mt-2 w-48 bg-card border border-edge rounded-xl shadow-lg py-2 z-50">
++                <p className="px-4 py-2 text-xs text-dim truncate border-b border-edge">
++                  {user.email}
++                </p>
++
++                <div className="px-4 py-3 border-b border-edge">
++                  <p className="text-xs text-dim mb-2">Theme</p>
++                  <div className="flex gap-1">
++                    {themeOptions.map(({ value }) => (
++                      <button
++                        key={value}
++                        onClick={() => setTheme(value)}
++                        className={`flex-1 flex items-center justify-center py-1.5 rounded-lg text-xs transition-colors ${
++                          theme === value
++                            ? "bg-accent-solid text-on-accent"
++                            : "text-sub hover:bg-card-hover"
++                        }`}
++                      >
++                        <Icon size={12} />
++                      </button>
++                    ))}
++                  </div>
++                </div>
++
++                <button
++                  onClick={handleLogout}
++                  className="w-full text-left px-4 py-2 text-sm text-sub hover:text-heading hover:bg-card-hover transition-colors"
++                >
++                  Log out
++                </button>
++              </div>
++            )}
++          </div>
++        ) : (
++          <Link to="/auth" className="hover:text-heading transition-colors">Sign in</Link>
++        )}
+       </div>
+     </nav>
+   );
+diff --git a/src/context/AuthContext.jsx b/src/context/AuthContext.jsx
+index b7e4ed1..f2ea924 100644
+--- a/src/context/AuthContext.jsx
++++ b/src/context/AuthContext.jsx
+@@ -6,7 +6,7 @@ import {
+   signOut,
+   onAuthStateChanged,
+ } from "firebase/auth";
+-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
++import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+ 
+ const AuthContext = createContext(null);
+ 
+diff --git a/src/index.css b/src/index.css
+index a461c50..8ae3345 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1 +1,64 @@
+-@import "tailwindcss";
+\ No newline at end of file
++@import "tailwindcss";
++
++@theme {
++  --color-page: var(--th-page);
++  --color-card: var(--th-card);
++  --color-card-hover: var(--th-card-hover);
++  --color-chip: var(--th-chip);
++  --color-edge: var(--th-edge);
++  --color-edge-hover: var(--th-edge-hover);
++  --color-heading: var(--th-heading);
++  --color-body: var(--th-body);
++  --color-sub: var(--th-sub);
++  --color-dim: var(--th-dim);
++  --color-ghost: var(--th-ghost);
++  --color-faint: var(--th-faint);
++  --color-accent: var(--th-accent);
++  --color-accent-hover: var(--th-accent-hover);
++  --color-accent-solid: var(--th-accent-solid);
++  --color-accent-solid-hover: var(--th-accent-solid-hover);
++  --color-on-accent: var(--th-on-accent);
++  --color-accent-dark: var(--th-accent-dark);
++}
++
++:root {
++  --th-page: #0c0a09;
++  --th-card: #1c1917;
++  --th-card-hover: #292524;
++  --th-chip: #292524;
++  --th-edge: #292524;
++  --th-edge-hover: #44403c;
++  --th-heading: #f5f5f4;
++  --th-body: #d6d3d1;
++  --th-sub: #a8a29e;
++  --th-dim: #78716c;
++  --th-ghost: #57534e;
++  --th-faint: #44403c;
++  --th-accent: #22d3ee;
++  --th-accent-hover: #67e8f9;
++  --th-accent-solid: #06b6d4;
++  --th-accent-solid-hover: #22d3ee;
++  --th-on-accent: #0c0a09;
++  --th-accent-dark: #083344;
++}
++
++[data-theme="light"] {
++  --th-page: #fafaf9;
++  --th-card: #ffffff;
++  --th-card-hover: #f5f5f4;
++  --th-chip: #e7e5e4;
++  --th-edge: #e7e5e4;
++  --th-edge-hover: #d6d3d1;
++  --th-heading: #1c1917;
++  --th-body: #44403c;
++  --th-sub: #57534e;
++  --th-dim: #78716c;
++  --th-ghost: #a8a29e;
++  --th-faint: #d6d3d1;
++  --th-accent: #0891b2;
++  --th-accent-hover: #0e7490;
++  --th-accent-solid: #0891b2;
++  --th-accent-solid-hover: #06b6d4;
++  --th-on-accent: #ffffff;
++  --th-accent-dark: #ecfeff;
++}
+\ No newline at end of file
+diff --git a/src/main.jsx b/src/main.jsx
+index fa1d4e4..f791134 100644
+--- a/src/main.jsx
++++ b/src/main.jsx
+@@ -3,16 +3,19 @@ import { createRoot } from 'react-dom/client'
+ import { BrowserRouter } from 'react-router-dom'
+ import { Toaster } from 'react-hot-toast'
+ import { AuthProvider } from './context/AuthContext'
++import { ThemeProvider } from './context/ThemeContext'
+ import App from './App.jsx'
+ import './index.css'
+ 
+ createRoot(document.getElementById('root')).render(
+   <StrictMode>
+     <BrowserRouter>
+-      <AuthProvider>
+-        <App />
+-        <Toaster position="bottom-right" />
+-      </AuthProvider>
++      <ThemeProvider>
++        <AuthProvider>
++          <App />
++          <Toaster position="bottom-right" />
++        </AuthProvider>
++      </ThemeProvider>
+     </BrowserRouter>
+   </StrictMode>,
+ )
+\ No newline at end of file
+diff --git a/src/pages/Auth.jsx b/src/pages/Auth.jsx
+index 613aab1..74f222b 100644
+--- a/src/pages/Auth.jsx
++++ b/src/pages/Auth.jsx
+@@ -1,10 +1,10 @@
+ import { useState } from "react";
+-import { useNavigate, Link } from "react-router-dom";
++import { useNavigate } from "react-router-dom";
+ import { useAuth } from "../context/AuthContext";
+ import toast from "react-hot-toast";
+ 
+ export default function Auth() {
+-  const [mode, setMode] = useState("login"); // "login" | "signup"
++  const [mode, setMode] = useState("login");
+   const [form, setForm] = useState({ username: "", email: "", password: "" });
+   const [loading, setLoading] = useState(false);
+   const { login, signup } = useAuth();
+@@ -35,26 +35,24 @@ export default function Auth() {
+   const handleKeyDown = (e) => { if (e.key === "Enter") submit(); };
+ 
+   return (
+-    <div className="min-h-[calc(100vh-65px)] bg-stone-950 flex items-center justify-center px-4">
++    <div className="min-h-[calc(100vh-65px)] bg-page flex items-center justify-center px-4">
+       <div className="w-full max-w-sm">
+ 
+-        {/* Header */}
+         <div className="mb-10 text-center">
+-          <h1 className="text-3xl font-bold text-stone-100 tracking-tight mb-2">
++          <h1 className="text-3xl font-bold text-heading tracking-tight mb-2">
+             {mode === "login" ? "Welcome back" : "Create account"}
+           </h1>
+-          <p className="text-stone-500 text-sm">
++          <p className="text-dim text-sm">
+             {mode === "login"
+               ? "Sign in to access your recipes and favorites"
+               : "Start building your personal cookbook"}
+           </p>
+         </div>
+ 
+-        {/* Form */}
+         <div className="space-y-4">
+           {mode === "signup" && (
+             <div>
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">
+                 Username
+               </label>
+               <input
+@@ -64,13 +62,13 @@ export default function Auth() {
+                 onChange={handle}
+                 onKeyDown={handleKeyDown}
+                 placeholder="chef_john"
+-                className="w-full bg-stone-900 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-card border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+           )}
+ 
+           <div>
+-            <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">
++            <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">
+               Email
+             </label>
+             <input
+@@ -80,12 +78,12 @@ export default function Auth() {
+               onChange={handle}
+               onKeyDown={handleKeyDown}
+               placeholder="you@example.com"
+-              className="w-full bg-stone-900 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++              className="w-full bg-card border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+             />
+           </div>
+ 
+           <div>
+-            <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">
++            <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">
+               Password
+             </label>
+             <input
+@@ -95,25 +93,24 @@ export default function Auth() {
+               onChange={handle}
+               onKeyDown={handleKeyDown}
+               placeholder="••••••••"
+-              className="w-full bg-stone-900 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++              className="w-full bg-card border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+             />
+           </div>
+ 
+           <button
+             onClick={submit}
+             disabled={loading}
+-            className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-stone-950 font-semibold rounded-lg py-3 transition-colors text-sm mt-2"
++            className="w-full bg-accent-solid hover:bg-accent-solid-hover disabled:opacity-50 disabled:cursor-not-allowed text-on-accent font-semibold rounded-lg py-3 transition-colors text-sm mt-2"
+           >
+             {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+           </button>
+         </div>
+ 
+-        {/* Toggle */}
+-        <p className="text-center text-stone-500 text-sm mt-8">
++        <p className="text-center text-dim text-sm mt-8">
+           {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+           <button
+             onClick={() => setMode(mode === "login" ? "signup" : "login")}
+-            className="text-amber-400 hover:text-amber-300 transition-colors font-medium"
++            className="text-accent hover:text-accent-hover transition-colors font-medium"
+           >
+             {mode === "login" ? "Sign up" : "Sign in"}
+           </button>
+diff --git a/src/pages/Favorites.jsx b/src/pages/Favorites.jsx
+index bb9ed40..99746b1 100644
+--- a/src/pages/Favorites.jsx
++++ b/src/pages/Favorites.jsx
+@@ -9,12 +9,12 @@ export default function Favorites() {
+ 
+   if (!user) {
+     return (
+-      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
++      <div className="min-h-screen bg-page flex items-center justify-center">
+         <div className="text-center">
+-          <p className="text-stone-400 text-lg mb-4">Sign in to view your favorites</p>
++          <p className="text-sub text-lg mb-4">Sign in to view your favorites</p>
+           <button
+             onClick={() => navigate("/auth")}
+-            className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
++            className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
+           >
+             Sign in
+           </button>
+@@ -24,11 +24,11 @@ export default function Favorites() {
+   }
+ 
+   return (
+-    <div className="min-h-screen bg-stone-950 px-6 pt-12 pb-24 max-w-6xl mx-auto">
++    <div className="min-h-screen bg-page px-6 pt-12 pb-24 max-w-6xl mx-auto">
+ 
+       <div className="mb-10">
+-        <h1 className="text-3xl font-bold text-stone-100 tracking-tight mb-2">Favorites</h1>
+-        <p className="text-stone-500 text-sm">
++        <h1 className="text-3xl font-bold text-heading tracking-tight mb-2">Favorites</h1>
++        <p className="text-dim text-sm">
+           {favorites.length === 0
+             ? "No saved recipes yet"
+             : `${favorites.length} saved recipe${favorites.length !== 1 ? "s" : ""}`}
+@@ -37,11 +37,11 @@ export default function Favorites() {
+ 
+       {favorites.length === 0 ? (
+         <div className="text-center py-24">
+-          <p className="text-stone-600 text-lg mb-2">Nothing here yet</p>
+-          <p className="text-stone-700 text-sm mb-8">Browse recipes and hit Save to build your collection</p>
++          <p className="text-ghost text-lg mb-2">Nothing here yet</p>
++          <p className="text-faint text-sm mb-8">Browse recipes and hit Save to build your collection</p>
+           <button
+             onClick={() => navigate("/search")}
+-            className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
++            className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
+           >
+             Explore recipes
+           </button>
+@@ -58,7 +58,6 @@ export default function Favorites() {
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+ 
+-              {/* Remove button */}
+               <button
+                 onClick={() => removeFavorite(fav.recipeId)}
+                 className="absolute top-3 right-3 bg-black/50 hover:bg-red-500/80 backdrop-blur-sm text-white rounded-full w-8 h-8 flex items-center justify-center text-xs transition-colors opacity-0 group-hover:opacity-100"
+@@ -74,7 +73,7 @@ export default function Favorites() {
+                   {fav.title}
+                 </p>
+                 {fav.category && (
+-                  <p className="text-amber-400 text-xs mt-1">{fav.category}</p>
++                  <p className="text-accent text-xs mt-1">{fav.category}</p>
+                 )}
+               </div>
+             </div>
+diff --git a/src/pages/Home.jsx b/src/pages/Home.jsx
+index ee003c2..70a56d4 100644
+--- a/src/pages/Home.jsx
++++ b/src/pages/Home.jsx
+@@ -1,5 +1,6 @@
+ import { useState, useEffect } from "react";
+ import { useNavigate } from "react-router-dom";
++import { RefreshCw } from "lucide-react";
+ import { mealdb } from "../services/mealdb";
+ 
+ export default function Home() {
+@@ -9,18 +10,23 @@ export default function Home() {
+   const [loading, setLoading] = useState(true);
+   const navigate = useNavigate();
+ 
+-  useEffect(() => {
+-    const load = async () => {
+-      const [meals, cats] = await Promise.all([
+-        mealdb.getRandomMultiple(8),
+-        mealdb.getCategories(),
+-      ]);
+-      setFeatured(meals);
+-      setCategories(cats.slice(0, 10));
+-      setLoading(false);
+-    };
+-    load();
+-  }, []);
++  const loadFeatured = async () => {
++    setLoading(true);
++    const [meals, cats] = await Promise.all([
++      mealdb.getRandomMultiple(8),
++      mealdb.getCategories(),
++    ]);
++    setFeatured(meals);
++    setCategories(cats.slice(0, 10));
++    setLoading(false);
++  };
++
++  useEffect(() => { loadFeatured(); }, []);
++
++  const refreshFeatured = () => {
++    mealdb.invalidateRandom();
++    loadFeatured();
++  };
+ 
+   const handleSearch = (e) => {
+     e.preventDefault();
+@@ -28,34 +34,32 @@ export default function Home() {
+   };
+ 
+   return (
+-    <div className="min-h-screen bg-stone-950">
++    <div className="min-h-screen bg-page">
+ 
+-      {/* Hero */}
+       <section className="relative px-6 pt-24 pb-20 text-center overflow-hidden">
+-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/40 via-stone-950 to-stone-950 pointer-events-none" />
++        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent-dark/40 via-page to-page pointer-events-none" />
+         <div className="relative max-w-2xl mx-auto">
+-          <p className="text-amber-400 text-xs font-semibold uppercase tracking-[0.2em] mb-4">
++          <p className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-4">
+             Your personal cookbook
+           </p>
+-          <h1 className="text-5xl sm:text-6xl font-bold text-stone-100 tracking-tight leading-tight mb-6">
++          <h1 className="text-5xl sm:text-6xl font-bold text-heading tracking-tight leading-tight mb-6">
+             Cook something<br />
+-            <span className="text-amber-400">worth remembering.</span>
++            <span className="text-accent">worth remembering.</span>
+           </h1>
+-          <p className="text-stone-400 text-lg mb-10 leading-relaxed">
++          <p className="text-sub text-lg mb-10 leading-relaxed">
+             Discover thousands of recipes, save your favorites, and build your own collection.
+           </p>
+ 
+-          {/* Search bar */}
+           <form onSubmit={handleSearch} className="flex gap-3 max-w-lg mx-auto">
+             <input
+               value={query}
+               onChange={(e) => setQuery(e.target.value)}
+               placeholder="Search any dish, ingredient..."
+-              className="flex-1 bg-stone-900 border border-stone-800 rounded-xl px-5 py-3.5 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++              className="flex-1 bg-card border border-edge rounded-xl px-5 py-3.5 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+             />
+             <button
+               type="submit"
+-              className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-6 py-3.5 rounded-xl transition-colors text-sm whitespace-nowrap"
++              className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-6 py-3.5 rounded-xl transition-colors text-sm whitespace-nowrap"
+             >
+               Search
+             </button>
+@@ -63,9 +67,8 @@ export default function Home() {
+         </div>
+       </section>
+ 
+-      {/* Categories */}
+       <section className="px-6 pb-16 max-w-6xl mx-auto">
+-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-5">
++        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim mb-5">
+           Browse by category
+         </h2>
+         <div className="flex gap-3 flex-wrap">
+@@ -73,7 +76,7 @@ export default function Home() {
+             <button
+               key={cat.idCategory}
+               onClick={() => navigate(`/search?category=${encodeURIComponent(cat.strCategory)}`)}
+-              className="px-4 py-2 bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-stone-700 rounded-full text-sm text-stone-300 transition-colors"
++              className="px-4 py-2 bg-card hover:bg-card-hover border border-edge hover:border-edge-hover rounded-full text-sm text-body transition-colors"
+             >
+               {cat.strCategory}
+             </button>
+@@ -81,16 +84,24 @@ export default function Home() {
+         </div>
+       </section>
+ 
+-      {/* Featured recipes */}
+       <section className="px-6 pb-24 max-w-6xl mx-auto">
+-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-6">
+-          Discover recipes
+-        </h2>
++        <div className="flex items-center gap-3 mb-6">
++          <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim">
++            Discover recipes
++          </h2>
++          <button
++            onClick={refreshFeatured}
++            disabled={loading}
++            className="text-ghost hover:text-accent transition-colors disabled:opacity-30"
++          >
++            <RefreshCw size={14} />
++          </button>
++        </div>
+ 
+         {loading ? (
+           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+             {Array.from({ length: 8 }).map((_, i) => (
+-              <div key={i} className="bg-stone-900 rounded-2xl aspect-square animate-pulse" />
++              <div key={i} className="bg-chip rounded-2xl aspect-square animate-pulse" />
+             ))}
+           </div>
+         ) : (
+@@ -112,7 +123,7 @@ export default function Home() {
+                     {meal.strMeal}
+                   </p>
+                   {meal.strCategory && (
+-                    <p className="text-amber-400 text-xs mt-1">{meal.strCategory}</p>
++                    <p className="text-accent text-xs mt-1">{meal.strCategory}</p>
+                   )}
+                 </div>
+               </button>
+diff --git a/src/pages/MyRecipes.jsx b/src/pages/MyRecipes.jsx
+index dbab792..6497fd0 100644
+--- a/src/pages/MyRecipes.jsx
++++ b/src/pages/MyRecipes.jsx
+@@ -73,12 +73,12 @@ export default function MyRecipes() {
+ 
+   if (!user) {
+     return (
+-      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
++      <div className="min-h-screen bg-page flex items-center justify-center">
+         <div className="text-center">
+-          <p className="text-stone-400 text-lg mb-4">Sign in to manage your recipes</p>
++          <p className="text-sub text-lg mb-4">Sign in to manage your recipes</p>
+           <button
+             onClick={() => navigate("/auth")}
+-            className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
++            className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
+           >
+             Sign in
+           </button>
+@@ -87,60 +87,59 @@ export default function MyRecipes() {
+     );
+   }
+ 
+-  // Detail view
+   if (selected) {
+     return (
+-      <div className="min-h-screen bg-stone-950 px-6 pt-12 pb-24 max-w-3xl mx-auto">
++      <div className="min-h-screen bg-page px-6 pt-12 pb-24 max-w-3xl mx-auto">
+         <button
+           onClick={() => setSelected(null)}
+-          className="text-stone-500 hover:text-stone-300 text-sm mb-8 transition-colors"
++          className="text-dim hover:text-body text-sm mb-8 transition-colors"
+         >
+           Back to My Recipes
+         </button>
+ 
+-        <h1 className="text-3xl font-bold text-stone-100 tracking-tight mb-3">{selected.title}</h1>
++        <h1 className="text-3xl font-bold text-heading tracking-tight mb-3">{selected.title}</h1>
+ 
+         <div className="flex flex-wrap gap-2 mb-6">
+           {selected.prepTime && (
+-            <span className="px-3 py-1 bg-stone-800 border border-stone-700 text-stone-400 rounded-full text-xs">
++            <span className="px-3 py-1 bg-chip border border-edge-hover text-sub rounded-full text-xs">
+               {selected.prepTime} min
+             </span>
+           )}
+           {selected.servings && (
+-            <span className="px-3 py-1 bg-stone-800 border border-stone-700 text-stone-400 rounded-full text-xs">
++            <span className="px-3 py-1 bg-chip border border-edge-hover text-sub rounded-full text-xs">
+               {selected.servings} servings
+             </span>
+           )}
+           {selected.tags?.map(tag => (
+-            <span key={tag} className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-xs">
++            <span key={tag} className="px-3 py-1 bg-accent/10 border border-accent/20 text-accent rounded-full text-xs">
+               {tag}
+             </span>
+           ))}
+         </div>
+ 
+         {selected.description && (
+-          <p className="text-stone-400 text-sm leading-relaxed mb-8">{selected.description}</p>
++          <p className="text-sub text-sm leading-relaxed mb-8">{selected.description}</p>
+         )}
+ 
+         <div className="grid sm:grid-cols-3 gap-8">
+           <div className="sm:col-span-1">
+-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-4">Ingredients</h2>
++            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim mb-4">Ingredients</h2>
+             <ul className="space-y-2.5">
+               {selected.ingredients?.map((ing, i) => (
+-                <li key={i} className="text-stone-300 text-sm border-b border-stone-900 pb-2.5">
++                <li key={i} className="text-body text-sm border-b border-edge pb-2.5">
+                   {ing}
+                 </li>
+               ))}
+             </ul>
+           </div>
+           <div className="sm:col-span-2">
+-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-4">Instructions</h2>
++            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim mb-4">Instructions</h2>
+             <div className="space-y-4">
+               {selected.instructions
+                 .split(/\r\n|\n|\r/)
+                 .filter(p => p.trim())
+                 .map((p, i) => (
+-                  <p key={i} className="text-stone-400 text-sm leading-relaxed">{p.trim()}</p>
++                  <p key={i} className="text-sub text-sm leading-relaxed">{p.trim()}</p>
+                 ))}
+             </div>
+           </div>
+@@ -157,79 +156,77 @@ export default function MyRecipes() {
+   }
+ 
+   return (
+-    <div className="min-h-screen bg-stone-950 px-6 pt-12 pb-24 max-w-6xl mx-auto">
++    <div className="min-h-screen bg-page px-6 pt-12 pb-24 max-w-6xl mx-auto">
+ 
+-      {/* Header */}
+       <div className="flex items-center justify-between mb-10">
+         <div>
+-          <h1 className="text-3xl font-bold text-stone-100 tracking-tight mb-2">My Recipes</h1>
+-          <p className="text-stone-500 text-sm">
++          <h1 className="text-3xl font-bold text-heading tracking-tight mb-2">My Recipes</h1>
++          <p className="text-dim text-sm">
+             {recipes.length === 0 ? "No custom recipes yet" : `${recipes.length} recipe${recipes.length !== 1 ? "s" : ""}`}
+           </p>
+         </div>
+         <button
+           onClick={() => setShowForm(!showForm)}
+-          className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
++          className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors"
+         >
+           {showForm ? "Cancel" : "+ New Recipe"}
+         </button>
+       </div>
+ 
+-      {/* Form */}
+       {showForm && (
+-        <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 mb-10">
+-          <h2 className="text-stone-100 font-semibold mb-6">New Recipe</h2>
++        <div className="bg-card border border-edge rounded-2xl p-6 mb-10">
++          <h2 className="text-heading font-semibold mb-6">New Recipe</h2>
+           <div className="grid sm:grid-cols-2 gap-4">
+ 
+             <div className="sm:col-span-2">
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">Title *</label>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">Title *</label>
+               <input
+                 name="title"
+                 value={form.title}
+                 onChange={handle}
+                 placeholder="My famous pasta..."
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+ 
+             <div className="sm:col-span-2">
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">Description</label>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">Description</label>
+               <input
+                 name="description"
+                 value={form.description}
+                 onChange={handle}
+                 placeholder="A short description..."
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+ 
+             <div>
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">Prep Time (minutes)</label>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">Prep Time (minutes)</label>
+               <input
+                 name="prepTime"
+                 type="number"
+                 value={form.prepTime}
+                 onChange={handle}
+                 placeholder="30"
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+ 
+             <div>
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">Servings</label>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">Servings</label>
+               <input
+                 name="servings"
+                 type="number"
+                 value={form.servings}
+                 onChange={handle}
+                 placeholder="4"
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+ 
+             <div className="sm:col-span-2">
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">
+-                Ingredients * <span className="normal-case text-stone-600 font-normal">(one per line)</span>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">
++                Ingredients * <span className="normal-case text-ghost font-normal">(one per line)</span>
+               </label>
+               <textarea
+                 name="ingredients"
+@@ -237,32 +234,32 @@ export default function MyRecipes() {
+                 onChange={handle}
+                 placeholder={"2 cups flour\n1 tsp salt\n3 eggs"}
+                 rows={5}
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm resize-none"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm resize-none"
+               />
+             </div>
+ 
+             <div className="sm:col-span-2">
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">Instructions *</label>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">Instructions *</label>
+               <textarea
+                 name="instructions"
+                 value={form.instructions}
+                 onChange={handle}
+                 placeholder="Step by step instructions..."
+                 rows={6}
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm resize-none"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm resize-none"
+               />
+             </div>
+ 
+             <div className="sm:col-span-2">
+-              <label className="block text-xs font-medium text-stone-400 mb-1.5 uppercase tracking-wider">
+-                Tags <span className="normal-case text-stone-600 font-normal">(comma separated)</span>
++              <label className="block text-xs font-medium text-sub mb-1.5 uppercase tracking-wider">
++                Tags <span className="normal-case text-ghost font-normal">(comma separated)</span>
+               </label>
+               <input
+                 name="tags"
+                 value={form.tags}
+                 onChange={handle}
+                 placeholder="vegetarian, quick, italian"
+-                className="w-full bg-stone-950 border border-stone-800 rounded-lg px-4 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++                className="w-full bg-page border border-edge rounded-lg px-4 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+               />
+             </div>
+           </div>
+@@ -271,7 +268,7 @@ export default function MyRecipes() {
+             <button
+               onClick={submit}
+               disabled={saving}
+-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-stone-950 font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
++              className="bg-accent-solid hover:bg-accent-solid-hover disabled:opacity-50 text-on-accent font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
+             >
+               {saving ? "Saving..." : "Save Recipe"}
+             </button>
+@@ -279,11 +276,10 @@ export default function MyRecipes() {
+         </div>
+       )}
+ 
+-      {/* Recipe grid */}
+       {recipes.length === 0 && !showForm ? (
+         <div className="text-center py-24">
+-          <p className="text-stone-600 text-lg mb-2">No recipes yet</p>
+-          <p className="text-stone-700 text-sm">Hit the button above to create your first one</p>
++          <p className="text-ghost text-lg mb-2">No recipes yet</p>
++          <p className="text-faint text-sm">Hit the button above to create your first one</p>
+         </div>
+       ) : (
+         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+@@ -291,31 +287,31 @@ export default function MyRecipes() {
+             <div
+               key={recipe.id}
+               onClick={() => setSelected(recipe)}
+-              className="group bg-stone-900 hover:bg-stone-800 border border-stone-800 hover:border-stone-700 rounded-2xl p-5 cursor-pointer transition-all"
++              className="group bg-card hover:bg-card-hover border border-edge hover:border-edge-hover rounded-2xl p-5 cursor-pointer transition-all"
+             >
+               <div className="flex items-start justify-between gap-3 mb-3">
+-                <h3 className="text-stone-100 font-semibold leading-tight">{recipe.title}</h3>
++                <h3 className="text-heading font-semibold leading-tight">{recipe.title}</h3>
+                 <button
+                   onClick={(e) => { e.stopPropagation(); deleteRecipe(recipe.id); }}
+-                  className="text-stone-700 hover:text-red-400 transition-colors text-xs shrink-0 opacity-0 group-hover:opacity-100"
++                  className="text-faint hover:text-red-400 transition-colors text-xs shrink-0 opacity-0 group-hover:opacity-100"
+                 >
+                   ✕
+                 </button>
+               </div>
+ 
+               {recipe.description && (
+-                <p className="text-stone-500 text-xs leading-relaxed mb-4 line-clamp-2">{recipe.description}</p>
++                <p className="text-dim text-xs leading-relaxed mb-4 line-clamp-2">{recipe.description}</p>
+               )}
+ 
+               <div className="flex flex-wrap gap-1.5">
+                 {recipe.prepTime && (
+-                  <span className="px-2 py-1 bg-stone-800 text-stone-500 rounded-md text-xs">{recipe.prepTime}min</span>
++                  <span className="px-2 py-1 bg-chip text-dim rounded-md text-xs">{recipe.prepTime}min</span>
+                 )}
+                 {recipe.servings && (
+-                  <span className="px-2 py-1 bg-stone-800 text-stone-500 rounded-md text-xs">{recipe.servings} servings</span>
++                  <span className="px-2 py-1 bg-chip text-dim rounded-md text-xs">{recipe.servings} servings</span>
+                 )}
+                 {recipe.tags?.slice(0, 2).map(tag => (
+-                  <span key={tag} className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded-md text-xs">{tag}</span>
++                  <span key={tag} className="px-2 py-1 bg-accent/10 text-accent rounded-md text-xs">{tag}</span>
+                 ))}
+               </div>
+             </div>
+diff --git a/src/pages/RecipeDetail.jsx b/src/pages/RecipeDetail.jsx
+index 44106f7..c433a47 100644
+--- a/src/pages/RecipeDetail.jsx
++++ b/src/pages/RecipeDetail.jsx
+@@ -42,12 +42,12 @@ export default function RecipeDetail() {
+ 
+   if (loading) {
+     return (
+-      <div className="min-h-screen bg-stone-950 px-6 pt-12 max-w-4xl mx-auto">
+-        <div className="h-8 w-32 bg-stone-900 rounded animate-pulse mb-8" />
+-        <div className="h-80 bg-stone-900 rounded-3xl animate-pulse mb-8" />
++      <div className="min-h-screen bg-page px-6 pt-12 max-w-4xl mx-auto">
++        <div className="h-8 w-32 bg-chip rounded animate-pulse mb-8" />
++        <div className="h-80 bg-chip rounded-3xl animate-pulse mb-8" />
+         <div className="space-y-3">
+           {Array.from({ length: 6 }).map((_, i) => (
+-            <div key={i} className="h-4 bg-stone-900 rounded animate-pulse" style={{ width: `${80 - i * 8}%` }} />
++            <div key={i} className="h-4 bg-chip rounded animate-pulse" style={{ width: `${80 - i * 8}%` }} />
+           ))}
+         </div>
+       </div>
+@@ -56,10 +56,10 @@ export default function RecipeDetail() {
+ 
+   if (!meal) {
+     return (
+-      <div className="min-h-screen bg-stone-950 flex items-center justify-center">
++      <div className="min-h-screen bg-page flex items-center justify-center">
+         <div className="text-center">
+-          <p className="text-stone-400 text-lg mb-4">Recipe not found</p>
+-          <button onClick={() => navigate(-1)} className="text-amber-400 text-sm hover:text-amber-300">
++          <p className="text-sub text-lg mb-4">Recipe not found</p>
++          <button onClick={() => navigate(-1)} className="text-accent text-sm hover:text-accent-hover">
+             Go back
+           </button>
+         </div>
+@@ -70,16 +70,15 @@ export default function RecipeDetail() {
+   const favorited = isFavorite(id);
+ 
+   return (
+-    <div className="min-h-screen bg-stone-950 pb-24">
++    <div className="min-h-screen bg-page pb-24">
+ 
+-      {/* Hero image */}
+       <div className="relative h-72 sm:h-96 w-full overflow-hidden">
+         <img
+           src={meal.strMealThumb}
+           alt={meal.strMeal}
+           className="w-full h-full object-cover"
+         />
+-        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
++        <div className="absolute inset-0 bg-gradient-to-t from-page via-page/40 to-transparent" />
+ 
+         <button
+           onClick={() => navigate(-1)}
+@@ -91,20 +90,19 @@ export default function RecipeDetail() {
+ 
+       <div className="max-w-3xl mx-auto px-6 -mt-12 relative">
+ 
+-        {/* Title card */}
+         <div className="flex items-start justify-between gap-4 mb-8">
+           <div>
+-            <h1 className="text-3xl sm:text-4xl font-bold text-stone-100 tracking-tight leading-tight mb-3">
++            <h1 className="text-3xl sm:text-4xl font-bold text-heading tracking-tight leading-tight mb-3">
+               {meal.strMeal}
+             </h1>
+             <div className="flex flex-wrap gap-2">
+               {meal.strCategory && (
+-                <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
++                <span className="px-3 py-1 bg-accent/10 border border-accent/20 text-accent rounded-full text-xs font-medium">
+                   {meal.strCategory}
+                 </span>
+               )}
+               {meal.strArea && (
+-                <span className="px-3 py-1 bg-stone-800 border border-stone-700 text-stone-400 rounded-full text-xs font-medium">
++                <span className="px-3 py-1 bg-chip border border-edge-hover text-sub rounded-full text-xs font-medium">
+                   {meal.strArea}
+                 </span>
+               )}
+@@ -115,8 +113,8 @@ export default function RecipeDetail() {
+             onClick={handleFavorite}
+             className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+               favorited
+-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20"
+-                : "bg-stone-900 border-stone-800 text-stone-400 hover:border-amber-500/30 hover:text-amber-400"
++                ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/20"
++                : "bg-card border-edge text-sub hover:border-accent/30 hover:text-accent"
+             }`}
+           >
+             <span>{favorited ? "♥" : "♡"}</span>
+@@ -126,24 +124,22 @@ export default function RecipeDetail() {
+ 
+         <div className="grid sm:grid-cols-3 gap-8">
+ 
+-          {/* Ingredients */}
+           <div className="sm:col-span-1">
+-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-4">
++            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim mb-4">
+               Ingredients
+             </h2>
+             <ul className="space-y-2.5">
+               {ingredients.map((item, i) => (
+-                <li key={i} className="flex justify-between gap-4 text-sm border-b border-stone-900 pb-2.5">
+-                  <span className="text-stone-300">{item.ingredient}</span>
+-                  <span className="text-stone-500 text-right shrink-0">{item.measure}</span>
++                <li key={i} className="flex justify-between gap-4 text-sm border-b border-edge pb-2.5">
++                  <span className="text-body">{item.ingredient}</span>
++                  <span className="text-dim text-right shrink-0">{item.measure}</span>
+                 </li>
+               ))}
+             </ul>
+           </div>
+ 
+-          {/* Instructions */}
+           <div className="sm:col-span-2">
+-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500 mb-4">
++            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-dim mb-4">
+               Instructions
+             </h2>
+             <div className="space-y-4">
+@@ -151,7 +147,7 @@ export default function RecipeDetail() {
+                 .split(/\r\n|\n|\r/)
+                 .filter((p) => p.trim().length > 0)
+                 .map((paragraph, i) => (
+-                  <p key={i} className="text-stone-400 text-sm leading-relaxed">
++                  <p key={i} className="text-sub text-sm leading-relaxed">
+                     {paragraph.trim()}
+                   </p>
+                 ))}
+@@ -163,7 +159,7 @@ export default function RecipeDetail() {
+                   href={meal.strSource}
+                   target="_blank"
+                   rel="noopener noreferrer"
+-                  className="text-amber-400 hover:text-amber-300 text-sm transition-colors"
++                  className="text-accent hover:text-accent-hover text-sm transition-colors"
+                 >
+                   View original recipe
+                 </a>
+@@ -173,7 +169,7 @@ export default function RecipeDetail() {
+                   href={meal.strYoutube}
+                   target="_blank"
+                   rel="noopener noreferrer"
+-                  className="text-stone-500 hover:text-stone-300 text-sm transition-colors"
++                  className="text-dim hover:text-body text-sm transition-colors"
+                 >
+                   Watch on YouTube
+                 </a>
+diff --git a/src/pages/Search.jsx b/src/pages/Search.jsx
+index c9b86af..8c54d6c 100644
+--- a/src/pages/Search.jsx
++++ b/src/pages/Search.jsx
+@@ -44,41 +44,37 @@ export default function Search() {
+   };
+ 
+   return (
+-    <div className="min-h-screen bg-stone-950 px-6 pt-12 pb-24 max-w-6xl mx-auto">
++    <div className="min-h-screen bg-page px-6 pt-12 pb-24 max-w-6xl mx-auto">
+ 
+-      {/* Search bar */}
+-      <form onSubmit={handleSubmit} className="flex gap-3 mb-10 max-w-xl">
++      <form onSubmit={handleSubmit} className="flex gap-3 mb-10 max-w-xl mx-auto">
+         <input
+           value={query}
+           onChange={(e) => setQuery(e.target.value)}
+           placeholder="Search any dish..."
+-          className="flex-1 bg-stone-900 border border-stone-800 rounded-xl px-5 py-3 text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500 transition-colors text-sm"
++          className="flex-1 bg-card border border-edge rounded-xl px-5 py-3 text-heading placeholder-ghost focus:outline-none focus:border-accent transition-colors text-sm"
+         />
+         <button
+           type="submit"
+-          className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
++          className="bg-accent-solid hover:bg-accent-solid-hover text-on-accent font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
+         >
+           Search
+         </button>
+       </form>
+ 
+-      {/* Status */}
+       {searched && !loading && (
+-        <p className="text-stone-500 text-xs uppercase tracking-widest mb-6">
++        <p className="text-dim text-xs uppercase tracking-widest mb-6">
+           {results.length} result{results.length !== 1 ? "s" : ""} found
+         </p>
+       )}
+ 
+-      {/* Loading skeleton */}
+       {loading && (
+         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+           {Array.from({ length: 8 }).map((_, i) => (
+-            <div key={i} className="bg-stone-900 rounded-2xl aspect-square animate-pulse" />
++            <div key={i} className="bg-chip rounded-2xl aspect-square animate-pulse" />
+           ))}
+         </div>
+       )}
+ 
+-      {/* Results */}
+       {!loading && results.length > 0 && (
+         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+           {results.map((meal) => (
+@@ -98,7 +94,7 @@ export default function Search() {
+                   {meal.strMeal}
+                 </p>
+                 {meal.strCategory && (
+-                  <p className="text-amber-400 text-xs mt-1">{meal.strCategory}</p>
++                  <p className="text-accent text-xs mt-1">{meal.strCategory}</p>
+                 )}
+               </div>
+             </button>
+@@ -106,18 +102,16 @@ export default function Search() {
+         </div>
+       )}
+ 
+-      {/* Empty state */}
+       {!loading && searched && results.length === 0 && (
+         <div className="text-center py-24">
+-          <p className="text-stone-600 text-lg mb-2">No recipes found</p>
+-          <p className="text-stone-700 text-sm">Try a different search term</p>
++          <p className="text-ghost text-lg mb-2">No recipes found</p>
++          <p className="text-faint text-sm">Try a different search term</p>
+         </div>
+       )}
+ 
+-      {/* Initial state */}
+       {!searched && !loading && (
+         <div className="text-center py-24">
+-          <p className="text-stone-600 text-lg">Search for a recipe above</p>
++          <p className="text-ghost text-lg">Search for a recipe above</p>
+         </div>
+       )}
+     </div>
+diff --git a/src/services/mealdb.js b/src/services/mealdb.js
+index af02faf..d619d3c 100644
+--- a/src/services/mealdb.js
++++ b/src/services/mealdb.js
+@@ -1,17 +1,31 @@
++import cache from "./LRUCache";
++
+ const BASE = "https://www.themealdb.com/api/json/v1/1";
+ 
++function cached(key, fetcher) {
++  if (cache.has(key)) return cache.get(key);
++  const promise = fetcher().catch((err) => {
++    cache.delete(key);
++    throw err;
++  });
++  cache.put(key, promise);
++  return promise;
++}
++
+ export const mealdb = {
+-  search: async (query) => {
+-    const res = await fetch(`${BASE}/search.php?s=${encodeURIComponent(query)}`);
+-    const data = await res.json();
+-    return data.meals || [];
+-  },
++  search: (query) =>
++    cached(`search:${query}`, async () => {
++      const res = await fetch(`${BASE}/search.php?s=${encodeURIComponent(query)}`);
++      const data = await res.json();
++      return data.meals || [];
++    }),
+ 
+-  getById: async (id) => {
+-    const res = await fetch(`${BASE}/lookup.php?i=${id}`);
+-    const data = await res.json();
+-    return data.meals?.[0] || null;
+-  },
++  getById: (id) =>
++    cached(`meal:${id}`, async () => {
++      const res = await fetch(`${BASE}/lookup.php?i=${id}`);
++      const data = await res.json();
++      return data.meals?.[0] || null;
++    }),
+ 
+   getRandom: async () => {
+     const res = await fetch(`${BASE}/random.php`);
+@@ -19,28 +33,40 @@ export const mealdb = {
+     return data.meals?.[0] || null;
+   },
+ 
+-  getRandomMultiple: async (count = 8) => {
+-    const results = await Promise.all(
+-      Array.from({ length: count }, () => mealdb.getRandom())
+-    );
+-    // dedupe by idMeal
+-    const seen = new Set();
+-    return results.filter(m => m && !seen.has(m.idMeal) && seen.add(m.idMeal));
+-  },
++  getRandomMultiple: (count = 8) =>
++    cached(`random:${count}`, async () => {
++      const results = await Promise.all(
++        Array.from({ length: count }, () => mealdb.getRandom())
++      );
++      const seen = new Set();
++      const meals = results.filter(m => m && !seen.has(m.idMeal) && seen.add(m.idMeal));
+ 
+-  getCategories: async () => {
+-    const res = await fetch(`${BASE}/categories.php`);
+-    const data = await res.json();
+-    return data.categories || [];
+-  },
++      for (const meal of meals) {
++        if (!cache.has(`meal:${meal.idMeal}`))
++          cache.put(`meal:${meal.idMeal}`, Promise.resolve(meal));
++      }
+ 
+-  getByCategory: async (category) => {
+-    const res = await fetch(`${BASE}/filter.php?c=${encodeURIComponent(category)}`);
+-    const data = await res.json();
+-    return data.meals || [];
++      return meals;
++    }),
++
++  invalidateRandom: () => {
++    cache.delete("random:8");
+   },
+ 
+-  // Parses the flat ingredient/measure fields into a clean array
++  getCategories: () =>
++    cached("categories", async () => {
++      const res = await fetch(`${BASE}/categories.php`);
++      const data = await res.json();
++      return data.categories || [];
++    }),
++
++  getByCategory: (category) =>
++    cached(`category:${category}`, async () => {
++      const res = await fetch(`${BASE}/filter.php?c=${encodeURIComponent(category)}`);
++      const data = await res.json();
++      return data.meals || [];
++    }),
++
+   parseIngredients: (meal) => {
+     const ingredients = [];
+     for (let i = 1; i <= 20; i++) {
+diff --git a/src/context/ThemeContext.jsx b/src/context/ThemeContext.jsx
+new file mode 100644
+index 0000000..7186d63
+--- /dev/null
++++ b/src/context/ThemeContext.jsx
+@@ -0,0 +1,32 @@
++import { createContext, useContext, useState, useEffect } from "react";
++
++const ThemeContext = createContext(null);
++
++function resolveTheme(pref) {
++  if (pref === "light" || pref === "dark") return pref;
++  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
++}
++
++export function ThemeProvider({ children }) {
++  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "system");
++
++  useEffect(() => {
++    const apply = () => document.documentElement.setAttribute("data-theme", resolveTheme(theme));
++    apply();
++    localStorage.setItem("theme", theme);
++
++    if (theme === "system") {
++      const mq = window.matchMedia("(prefers-color-scheme: dark)");
++      mq.addEventListener("change", apply);
++      return () => mq.removeEventListener("change", apply);
++    }
++  }, [theme]);
++
++  return (
++    <ThemeContext.Provider value={{ theme, setTheme }}>
++      {children}
++    </ThemeContext.Provider>
++  );
++}
++
++export const useTheme = () => useContext(ThemeContext);
+diff --git a/src/services/LRUCache.js b/src/services/LRUCache.js
+new file mode 100644
+index 0000000..89ea709
+--- /dev/null
++++ b/src/services/LRUCache.js
+@@ -0,0 +1,83 @@
++class Node {
++  constructor(key, value) {
++    this.key = key;
++    this.value = value;
++    this.prev = null;
++    this.next = null;
++  }
++}
++
++class LRUCache {
++  constructor(capacity = 50) {
++    this.capacity = capacity;
++    this.map = new Map();
++    this.head = new Node(null, null);
++    this.tail = new Node(null, null);
++    this.head.next = this.tail;
++    this.tail.prev = this.head;
++  }
++
++  _removeNode(node) {
++    node.prev.next = node.next;
++    node.next.prev = node.prev;
++  }
++
++  _addToHead(node) {
++    node.next = this.head.next;
++    node.prev = this.head;
++    this.head.next.prev = node;
++    this.head.next = node;
++  }
++
++  _moveToHead(node) {
++    this._removeNode(node);
++    this._addToHead(node);
++  }
++
++  _evict() {
++    const lru = this.tail.prev;
++    if (lru === this.head) return;
++    this._removeNode(lru);
++    this.map.delete(lru.key);
++  }
++
++  get(key) {
++    const node = this.map.get(key);
++    if (!node) return undefined;
++    this._moveToHead(node);
++    return node.value;
++  }
++
++  has(key) {
++    return this.map.has(key);
++  }
++
++  put(key, value) {
++    const existing = this.map.get(key);
++    if (existing) {
++      existing.value = value;
++      this._moveToHead(existing);
++      return;
++    }
++    if (this.map.size >= this.capacity) {
++      this._evict();
++    }
++    const node = new Node(key, value);
++    this.map.set(key, node);
++    this._addToHead(node);
++  }
++
++  delete(key) {
++    const node = this.map.get(key);
++    if (!node) return;
++    this._removeNode(node);
++    this.map.delete(key);
++  }
++
++  get size() {
++    return this.map.size;
++  }
++}
++
++const cache = new LRUCache(50);
++export default cache;

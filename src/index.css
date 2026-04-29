@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page: var(--th-page);
+  --color-card: var(--th-card);
+  --color-card-hover: var(--th-card-hover);
+  --color-chip: var(--th-chip);
+  --color-edge: var(--th-edge);
+  --color-edge-hover: var(--th-edge-hover);
+  --color-heading: var(--th-heading);
+  --color-body: var(--th-body);
+  --color-sub: var(--th-sub);
+  --color-dim: var(--th-dim);
+  --color-ghost: var(--th-ghost);
+  --color-faint: var(--th-faint);
+  --color-accent: var(--th-accent);
+  --color-accent-hover: var(--th-accent-hover);
+  --color-accent-solid: var(--th-accent-solid);
+  --color-accent-solid-hover: var(--th-accent-solid-hover);
+  --color-on-accent: var(--th-on-accent);
+  --color-accent-dark: var(--th-accent-dark);
+}
+
+:root {
+  --th-page: #0c0a09;
+  --th-card: #1c1917;
+  --th-card-hover: #292524;
+  --th-chip: #292524;
+  --th-edge: #292524;
+  --th-edge-hover: #44403c;
+  --th-heading: #f5f5f4;
+  --th-body: #d6d3d1;
+  --th-sub: #a8a29e;
+  --th-dim: #78716c;
+  --th-ghost: #57534e;
+  --th-faint: #44403c;
+  --th-accent: #22d3ee;
+  --th-accent-hover: #67e8f9;
+  --th-accent-solid: #06b6d4;
+  --th-accent-solid-hover: #22d3ee;
+  --th-on-accent: #0c0a09;
+  --th-accent-dark: #083344;
+}
+
+[data-theme="light"] {
+  --th-page: #fafaf9;
+  --th-card: #ffffff;
+  --th-card-hover: #f5f5f4;
+  --th-chip: #e7e5e4;
+  --th-edge: #e7e5e4;
+  --th-edge-hover: #d6d3d1;
+  --th-heading: #1c1917;
+  --th-body: #44403c;
+  --th-sub: #57534e;
+  --th-dim: #78716c;
+  --th-ghost: #a8a29e;
+  --th-faint: #d6d3d1;
+  --th-accent: #0891b2;
+  --th-accent-hover: #0e7490;
+  --th-accent-solid: #0891b2;
+  --th-accent-solid-hover: #06b6d4;
+  --th-on-accent: #ffffff;
+  --th-accent-dark: #ecfeff;
+}
