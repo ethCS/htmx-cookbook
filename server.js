@@ -20,12 +20,12 @@ for (const envFile of [".env", ".env.SECRET_KEYS"]) {
 }
 
 const {
-  FIREBASE_PROJECT_ID = "htmx-cookbook",
-  FIREBASE_CLIENT_EMAIL,
-  FIREBASE_PRIVATE_KEY,
-  FIREBASE_WEB_API_KEY,
+  FB_PROJECT_ID = "htmx-cookbook",
+  FB_CLIENT_EMAIL,
+  FB_PRIVATE_KEY,
+  FB_WEB_API_KEY,
   SESSION_SECRET,
-  PORT = "3000",
+  APP_PORT = "3000",
 } = process.env;
 
 function normalizePrivateKey(rawKey) {
@@ -41,9 +41,9 @@ const isCloudFunction = !!process.env.K_SERVICE || !!process.env.FUNCTION_TARGET
 function validateLocalRuntimeEnv() {
   const missing = [];
   if (!SESSION_SECRET) missing.push("SESSION_SECRET");
-  if (!FIREBASE_WEB_API_KEY) missing.push("FIREBASE_WEB_API_KEY");
-  if (!FIREBASE_CLIENT_EMAIL) missing.push("FIREBASE_CLIENT_EMAIL");
-  if (!FIREBASE_PRIVATE_KEY) missing.push("FIREBASE_PRIVATE_KEY");
+  if (!FB_WEB_API_KEY) missing.push("FB_WEB_API_KEY");
+  if (!FB_CLIENT_EMAIL) missing.push("FB_CLIENT_EMAIL");
+  if (!FB_PRIVATE_KEY) missing.push("FB_PRIVATE_KEY");
 
   if (missing.length) {
     throw new Error(`Missing env vars for local run: ${missing.join(", ")}`);
@@ -51,18 +51,18 @@ function validateLocalRuntimeEnv() {
 }
 
 if (!admin.apps.length) {
-  if (FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
+  if (FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
     admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: FIREBASE_PROJECT_ID,
-        clientEmail: FIREBASE_CLIENT_EMAIL,
-        privateKey: normalizePrivateKey(FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n"),
+        projectId: FB_PROJECT_ID,
+        clientEmail: FB_CLIENT_EMAIL,
+        privateKey: normalizePrivateKey(FB_PRIVATE_KEY).replace(/\\n/g, "\n"),
       }),
-      projectId: FIREBASE_PROJECT_ID,
+      projectId: FB_PROJECT_ID,
     });
   } else {
     // Cloud Functions runtime: use Application Default Credentials.
-    admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
+    admin.initializeApp({ projectId: FB_PROJECT_ID });
   }
 }
 
@@ -282,7 +282,7 @@ function authRequired(req, res) {
 }
 
 async function loginWithFirebase(email, password) {
-  const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(FIREBASE_WEB_API_KEY)}`;
+  const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(FB_WEB_API_KEY)}`;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -890,7 +890,7 @@ app.post("/auth/login", async (req, res) => {
     } else if (details.includes("CONFIGURATION_NOT_FOUND")) {
       message = "Email/password sign-in is disabled in Firebase Auth settings.";
     } else if (details.includes("API key not valid")) {
-      message = "FIREBASE_WEB_API_KEY is invalid for this project.";
+      message = "FB_WEB_API_KEY is invalid for this project.";
     }
 
     return res.status(htmxFriendlyStatus(req, 401)).render("partials/auth", {
@@ -935,9 +935,9 @@ app.use((req, res) => {
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
   validateLocalRuntimeEnv();
-  app.listen(Number(PORT), () => {
+  app.listen(Number(APP_PORT), () => {
     // eslint-disable-next-line no-console
-    console.log(`HTMX Cookbook running on http://localhost:${PORT}`);
+    console.log(`HTMX Cookbook running on http://localhost:${APP_PORT}`);
   });
 }
 

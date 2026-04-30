@@ -30,15 +30,15 @@ Recipe discovery and personal cookbook app rebuilt as a server-rendered HTMX app
 ## Required Environment Variables
 Copy [\.env.example](.env.example) to `.env` or use `.env.SECRET_KEYS` and provide:
 
-- `FIREBASE_PROJECT_ID=htmx-cookbook`
-- `FIREBASE_CLIENT_EMAIL=`
-- `FIREBASE_PRIVATE_KEY=`
-- `FIREBASE_WEB_API_KEY=`
+- `FB_PROJECT_ID=htmx-cookbook`
+- `FB_CLIENT_EMAIL=`
+- `FB_PRIVATE_KEY=`
+- `FB_WEB_API_KEY=`
 - `SESSION_SECRET=`
-- `PORT=3000`
+- `APP_PORT=3000`
 - `NODE_ENV=development`
 
-`FIREBASE_PRIVATE_KEY` must come from a Firebase service account and should keep embedded newlines escaped as `\n` when stored in env files.
+`FB_PRIVATE_KEY` must come from a Firebase service account and should keep embedded newlines escaped as `\n` when stored in env files.
 
 ## Run Locally
 1. Install dependencies with `npm install`.
