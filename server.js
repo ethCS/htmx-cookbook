@@ -70,6 +70,31 @@ class FirestoreSessionStore extends session.Store {
     this.collection = this.database.collection(collectionName);
   }
 
+  toPlainSession(sess) {
+    const plainSession = JSON.parse(JSON.stringify(sess || {}));
+    if (sess?.cookie?.expires instanceof Date) {
+      plainSession.cookie = plainSession.cookie || {};
+      plainSession.cookie.expires = sess.cookie.expires.toISOString();
+    }
+    return plainSession;
+  }
+
+  fromStoredSession(sessionData) {
+    if (!sessionData || typeof sessionData !== "object") {
+      return null;
+    }
+
+    const plainSession = { ...sessionData };
+    if (plainSession.cookie?.expires && typeof plainSession.cookie.expires === "string") {
+      plainSession.cookie = {
+        ...plainSession.cookie,
+        expires: new Date(plainSession.cookie.expires),
+      };
+    }
+
+    return plainSession;
+  }
+
   get(sid, callback) {
     this.collection
       .doc(sid)
@@ -81,7 +106,7 @@ class FirestoreSessionStore extends session.Store {
         }
 
         const payload = docSnap.data() || {};
-        const sessionData = payload.session || null;
+        const sessionData = this.fromStoredSession(payload.session || null);
         if (!sessionData) {
           callback(null, null);
           return;
@@ -100,13 +125,14 @@ class FirestoreSessionStore extends session.Store {
   }
 
   set(sid, sess, callback) {
+    const sessionData = this.toPlainSession(sess);
     const expires = sess?.cookie?.expires;
     const expiresAt = expires ? new Date(expires) : new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
     this.collection
       .doc(sid)
       .set({
-        session: sess,
+        session: sessionData,
         expiresAt,
       })
       .then(() => callback && callback(null))
