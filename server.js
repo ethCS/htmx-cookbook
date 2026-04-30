@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import connectSessionFirestore from "connect-session-firestore";
 import admin from "firebase-admin";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -60,7 +59,71 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const FirestoreStore = connectSessionFirestore(session);
+
+class FirestoreSessionStore extends session.Store {
+  constructor({ database, collectionName = "sessions" }) {
+    super();
+    this.database = database;
+    this.collection = this.database.collection(collectionName);
+  }
+
+  get(sid, callback) {
+    this.collection
+      .doc(sid)
+      .get()
+      .then((docSnap) => {
+        if (!docSnap.exists) {
+          callback(null, null);
+          return;
+        }
+
+        const payload = docSnap.data() || {};
+        const sessionData = payload.session || null;
+        if (!sessionData) {
+          callback(null, null);
+          return;
+        }
+
+        const expiresAt = payload.expiresAt;
+        if (expiresAt && typeof expiresAt.toDate === "function" && expiresAt.toDate() <= new Date()) {
+          this.collection.doc(sid).delete().catch(() => {});
+          callback(null, null);
+          return;
+        }
+
+        callback(null, sessionData);
+      })
+      .catch((error) => callback(error));
+  }
+
+  set(sid, sess, callback) {
+    const expires = sess?.cookie?.expires;
+    const expiresAt = expires ? new Date(expires) : new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+
+    this.collection
+      .doc(sid)
+      .set({
+        session: sess,
+        expiresAt,
+      })
+      .then(() => callback && callback(null))
+      .catch((error) => callback && callback(error));
+  }
+
+  destroy(sid, callback) {
+    this.collection
+      .doc(sid)
+      .delete()
+      .then(() => callback && callback(null))
+      .catch((error) => callback && callback(error));
+  }
+}
+
+const sessionStore = new FirestoreSessionStore({
+  database: db,
+  collectionName: "sessions",
+});
+
 const app = express();
 
 app.set("view engine", "pug");
@@ -96,10 +159,7 @@ app.use(express.json());
 
 app.use(
   session({
-    store: new FirestoreStore({
-      database: db,
-      sessions: "sessions",
-    }),
+    store: sessionStore,
     name: "cookbook.sid",
     // Keep import-time safe for Firebase deploy analysis; local runs validate before listen.
     secret: SESSION_SECRET || "import-time-placeholder-secret",
