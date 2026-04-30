@@ -38,16 +38,16 @@ function normalizePrivateKey(rawKey) {
 // Credentials automatically, so explicit service-account keys are optional.
 const isCloudFunction = !!process.env.K_SERVICE || !!process.env.FUNCTION_TARGET;
 
-if (!SESSION_SECRET || !FIREBASE_WEB_API_KEY) {
-  throw new Error(
-    "Missing env vars. Required: FIREBASE_WEB_API_KEY, SESSION_SECRET",
-  );
-}
+function validateLocalRuntimeEnv() {
+  const missing = [];
+  if (!SESSION_SECRET) missing.push("SESSION_SECRET");
+  if (!FIREBASE_WEB_API_KEY) missing.push("FIREBASE_WEB_API_KEY");
+  if (!FIREBASE_CLIENT_EMAIL) missing.push("FIREBASE_CLIENT_EMAIL");
+  if (!FIREBASE_PRIVATE_KEY) missing.push("FIREBASE_PRIVATE_KEY");
 
-if (!isCloudFunction && (!FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY)) {
-  throw new Error(
-    "Missing env vars. Required locally: FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY",
-  );
+  if (missing.length) {
+    throw new Error(`Missing env vars for local run: ${missing.join(", ")}`);
+  }
 }
 
 if (!admin.apps.length) {
@@ -103,7 +103,8 @@ app.use(express.json());
 app.use(
   session({
     name: "cookbook.sid",
-    secret: SESSION_SECRET,
+    // Keep import-time safe for Firebase deploy analysis; local runs validate before listen.
+    secret: SESSION_SECRET || "import-time-placeholder-secret",
     resave: false,
     saveUninitialized: false,
     proxy: true,
@@ -933,6 +934,7 @@ app.use((req, res) => {
 // Only start a local HTTP server when server.js is run directly (not imported).
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
+  validateLocalRuntimeEnv();
   app.listen(Number(PORT), () => {
     // eslint-disable-next-line no-console
     console.log(`HTMX Cookbook running on http://localhost:${PORT}`);
