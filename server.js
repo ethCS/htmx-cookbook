@@ -935,6 +935,7 @@ app.post("/auth/login", async (req, res) => {
       });
     });
   } catch (error) {
+    const code = String(error?.code || error?.errorInfo?.code || "");
     const details = String(error?.message || "");
     let message = "Invalid email or password.";
     if (details.includes("EMAIL_NOT_FOUND")) {
@@ -943,12 +944,29 @@ app.post("/auth/login", async (req, res) => {
       message = "No matching account/password found. If signup previously failed, create account again after Firestore is enabled.";
     } else if (details.includes("INVALID_PASSWORD")) {
       message = "Invalid email or password.";
+    } else if (code.includes("auth/argument-error") || code.includes("auth/invalid-credential")) {
+      message = "Firebase token verification failed. Your FB_WEB_API_KEY and Admin SDK credentials are likely from different projects.";
+    } else if (code.includes("auth/id-token-expired")) {
+      message = "Sign-in token expired too quickly. Please try signing in again.";
+    } else if (code.includes("auth/id-token-revoked")) {
+      message = "Sign-in token was revoked. Please sign in again.";
+    } else if (code.includes("auth/project-not-found")) {
+      message = "Firebase Admin SDK project is invalid or does not exist.";
     } else if (details.includes("USER_DISABLED")) {
       message = "This account is disabled.";
     } else if (details.includes("CONFIGURATION_NOT_FOUND")) {
       message = "Email/password sign-in is disabled in Firebase Auth settings.";
     } else if (details.includes("API key not valid")) {
       message = "FB_WEB_API_KEY is invalid for this project.";
+    } else if (details.includes("incorrect \"aud\"") || details.includes("incorrect \"iss\"")) {
+      message = "Firebase project mismatch: FB_WEB_API_KEY and Admin SDK credentials appear to be from different Firebase projects.";
+    } else if (details.includes("auth/argument-error") || details.includes("Decoding Firebase ID token failed")) {
+      message = "The Firebase ID token could not be verified. Check FB_PROJECT_ID, FB_WEB_API_KEY, and Admin SDK credentials are for the same project.";
+    } else if (details.includes("fetch failed") || details.includes("ENOTFOUND") || details.includes("ECONNRESET")) {
+      message = "Temporary network issue while contacting Firebase Auth. Please try again.";
+    } else {
+      // eslint-disable-next-line no-console
+      console.error("Login error detail:", { code, details: details || String(error) });
     }
 
     return res.status(htmxFriendlyStatus(req, 401)).render("partials/auth", {
