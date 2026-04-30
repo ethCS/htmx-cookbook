@@ -19,6 +19,15 @@ function getCookie(name) {
   return "";
 }
 
+function resolveInitialRoute() {
+  const { pathname, search } = window.location;
+  if (pathname === "/") {
+    return "/pages/home";
+  }
+
+  return `${pathname}${search}`;
+}
+
 function syncMobileMenuState(isOpen) {
   const toggleButton = document.querySelector(".nav-toggle-button");
   const menu = document.querySelector(".nav-menu");
@@ -28,6 +37,11 @@ function syncMobileMenuState(isOpen) {
 
   toggleButton.setAttribute("aria-expanded", String(isOpen));
   menu.classList.toggle("is-open", isOpen);
+}
+
+const mainContent = document.querySelector("#main-content");
+if (mainContent) {
+  mainContent.setAttribute("hx-get", resolveInitialRoute());
 }
 
 document.body.addEventListener("htmx:configRequest", (event) => {

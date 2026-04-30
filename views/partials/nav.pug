@@ -45,14 +45,14 @@ nav.navbar(aria-label="Primary")
             ) My Recipes
 
         if user
-          .auth-actions
-            p.signed-in Signed in as #{user.username || user.email}
+          .auth-actions.auth-actions-user
             form(
               hx-post="/auth/logout"
               hx-target="#main-content"
               hx-swap="innerHTML"
             )
               button(type="submit") Sign out
+            p.signed-in Signed in as (#{user.username || user.email})
         else
           .auth-actions
             button(

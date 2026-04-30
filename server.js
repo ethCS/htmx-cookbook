@@ -71,6 +71,7 @@ const app = express();
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
+app.set("trust proxy", 1);
 app.disable("x-powered-by");
 
 app.use((req, res, next) => {
@@ -105,10 +106,11 @@ app.use(
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: "auto",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   }),
@@ -361,6 +363,24 @@ async function renderNav(res, req) {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+const appShellRoutes = [
+  "/auth",
+  "/search",
+  "/favorites",
+  "/my-recipes",
+  "/my-recipes/:id/edit",
+  "/recipe/:id",
+  "/pages/*",
+];
+
+app.get(appShellRoutes, (req, res, next) => {
+  if (isHtmx(req)) {
+    return next();
+  }
+
+  return res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.get("/health", (req, res) => {
@@ -773,9 +793,18 @@ app.post("/auth/signup", async (req, res) => {
       username,
     };
 
-    res.render("partials/post-auth", {
-      user: req.session.user,
-      message: "Account created. You are now signed in.",
+    req.session.save((saveError) => {
+      if (saveError) {
+        return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
+          mode: "signup",
+          message: "Session could not be created. Please try again.",
+        });
+      }
+
+      return res.render("partials/post-auth", {
+        user: req.session.user,
+        message: "Account created. You are now signed in.",
+      });
     });
   } catch (error) {
     if (createdUid && isFirestoreDisabledError(error)) {
@@ -833,9 +862,18 @@ app.post("/auth/login", async (req, res) => {
       username: profile.data()?.username || decoded.name || "Cook",
     };
 
-    return res.render("partials/post-auth", {
-      user: req.session.user,
-      message: "",
+    return req.session.save((saveError) => {
+      if (saveError) {
+        return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
+          mode: "login",
+          message: "Session could not be created. Please try again.",
+        });
+      }
+
+      return res.render("partials/post-auth", {
+        user: req.session.user,
+        message: "",
+      });
     });
   } catch (error) {
     const details = String(error?.message || "");
@@ -892,8 +930,9 @@ app.use((req, res) => {
   res.status(404).send('<section class="panel" role="alert"><h1>Page not found</h1><p>The requested page was not found.</p></section>');
 });
 
-// Only start a local HTTP server when not running inside a Cloud Function.
-if (!isCloudFunction) {
+// Only start a local HTTP server when server.js is run directly (not imported).
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMain) {
   app.listen(Number(PORT), () => {
     // eslint-disable-next-line no-console
     console.log(`HTMX Cookbook running on http://localhost:${PORT}`);

@@ -186,7 +186,7 @@ body::after {
 .nav-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -207,12 +207,14 @@ body::after {
 }
 
 .nav-menu {
-  margin-left: auto;
-  display: flex;
+  margin-left: 0;
+  display: block;
+  flex: 1;
 }
 
 .nav-menu-inner {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 1rem;
 }
@@ -220,6 +222,7 @@ body::after {
 .nav-links {
   list-style: none;
   display: flex;
+  justify-content: center;
   gap: 1.1rem;
   margin: 0;
   padding: 0;
@@ -234,7 +237,17 @@ body::after {
 .signed-in {
   margin: 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.62rem;
+  line-height: 1.2;
+  opacity: 0.82;
+  white-space: nowrap;
+  position: relative;
+  top: 1px;
+}
+
+.auth-actions-user {
+  align-items: center;
+  gap: 0.5rem;
 }
 
 button,
@@ -785,6 +798,7 @@ h4 {
     overflow: hidden;
     width: 100%;
     display: grid;
+    grid-template-columns: 1fr;
     gap: 0.55rem;
     padding-top: 0;
   }
@@ -805,6 +819,10 @@ h4 {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .auth-actions-user {
+    align-items: flex-start;
   }
 
   .content-shell {
