@@ -28,6 +28,8 @@ const {
   APP_PORT = "3000",
 } = process.env;
 
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+
 function validateLocalRuntimeEnv() {
   const missing = [];
   if (!SESSION_SECRET) missing.push("SESSION_SECRET");
@@ -41,7 +43,7 @@ function validateLocalRuntimeEnv() {
 }
 
 if (!admin.apps.length) {
-  if (FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
+  if (isMain && FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: FB_PROJECT_ID,
@@ -921,7 +923,6 @@ app.use((req, res) => {
 });
 
 // Only start a local HTTP server when server.js is run directly (not imported).
-const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
   validateLocalRuntimeEnv();
   app.listen(Number(APP_PORT), () => {
