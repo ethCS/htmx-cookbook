@@ -4,7 +4,7 @@
 if user
   section.auth-complete(
     aria-live="polite"
-    hx-get="/pages/home"
+    hx-get=nextPath || "/pages/home"
     hx-trigger="load delay:350ms"
     hx-target="#main-content"
     hx-swap="innerHTML"
@@ -13,12 +13,14 @@ if user
     h1 Signed in
     if message
       p.notice= message
-    p.meta Redirecting to home...
+    p.meta Redirecting to #{nextPath || "/pages/home"}...
+    include debug-panel
 else
   section.auth-complete(aria-live="polite")
     h1 Signed out
     if message
       p.notice= message
+    include debug-panel
     button(
       type="button"
       hx-get="/pages/home"

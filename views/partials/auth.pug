@@ -1,4 +1,5 @@
 section.auth-panel(aria-labelledby="auth-title")
+  - const nextSuffix = nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""
   if mode === "signup"
     h1#auth-title Create account
   else
@@ -7,17 +8,19 @@ section.auth-panel(aria-labelledby="auth-title")
   if message
     p.notice(role="status")= message
 
+  include debug-panel
+
   .mode-switch
     button(
       type="button"
-      hx-get="/auth?mode=login"
+      hx-get=`/auth?mode=login${nextSuffix}`
       hx-target="#main-content"
       hx-swap="innerHTML"
       aria-pressed=mode === "login" ? "true" : "false"
     ) Sign in
     button(
       type="button"
-      hx-get="/auth?mode=signup"
+      hx-get=`/auth?mode=signup${nextSuffix}`
       hx-target="#main-content"
       hx-swap="innerHTML"
       aria-pressed=mode === "signup" ? "true" : "false"
@@ -29,6 +32,7 @@ section.auth-panel(aria-labelledby="auth-title")
       hx-target="#main-content"
       hx-swap="innerHTML"
     )
+      input(type="hidden" name="next" value=nextPath || "/pages/home")
       label(for="username") Username
       input#username(
         type="text"
@@ -76,6 +80,7 @@ section.auth-panel(aria-labelledby="auth-title")
       hx-target="#main-content"
       hx-swap="innerHTML"
     )
+      input(type="hidden" name="next" value=nextPath || "/pages/home")
       label(for="login-email") Email
       input#login-email(
         type="email"

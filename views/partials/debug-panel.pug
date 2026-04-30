@@ -1,0 +1,10 @@
+if debugInfo && debugInfo.length
+  details.debug-panel
+    summary Debug Details
+    .debug-panel-body
+      p.debug-panel-copy Expand for raw request and session diagnostics.
+      dl.debug-grid
+        each item in debugInfo
+          dt= item.label
+          dd
+            pre= item.value
