@@ -2,18 +2,35 @@
   include nav
 
 if user
-  section.auth-complete(
-    aria-live="polite"
-    hx-get=nextPath || "/pages/home"
-    hx-trigger="load delay:350ms"
-    hx-target="#main-content"
-    hx-swap="innerHTML"
-    hx-push-url="true"
-  )
+  section.auth-complete(aria-live="polite")
     h1 Signed in
     if message
       p.notice= message
-    p.meta Redirecting to #{nextPath || "/pages/home"}...
+    if pauseRedirect
+      p.meta Debug mode is holding the success screen open.
+      .debug-follow-up(
+        hx-get="/debug/session-check"
+        hx-trigger="load delay:150ms"
+        hx-target="this"
+        hx-swap="innerHTML"
+      )
+        p.meta Running immediate session check...
+      button(
+        type="button"
+        hx-get=nextPath || "/pages/home"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        hx-push-url="true"
+      ) Continue to requested page
+    else
+      p.meta Redirecting to #{nextPath || "/pages/home"}...
+      div(
+        hx-get=nextPath || "/pages/home"
+        hx-trigger="load delay:350ms"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        hx-push-url="true"
+      )
     include debug-panel
 else
   section.auth-complete(aria-live="polite")

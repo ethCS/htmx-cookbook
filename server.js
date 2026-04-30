@@ -25,6 +25,7 @@ const FB_CLIENT_EMAIL = process.env.FB_CLIENT_EMAIL;
 const FB_PRIVATE_KEY = process.env.FB_PRIVATE_KEY;
 const FB_WEB_API_KEY = process.env.FB_WEB_API_KEY;
 const SESSION_SECRET = process.env.SESSION_SECRET;
+const SESSION_COOKIE_NAME = "__session";
 const APP_PORT = process.env.PORT || process.env.APP_PORT || "3000";
 const isProduction = process.env.NODE_ENV === "production";
 const isManagedRuntime = Boolean(process.env.K_SERVICE || process.env.PORT || process.env.FUNCTION_TARGET);
@@ -86,7 +87,7 @@ function buildDebugInfo(req, extraEntries = []) {
     ["HX Request", isHtmx(req)],
     ["Managed Runtime", isManagedRuntime],
     ["Session ID", req.sessionID || "(none)"],
-    ["Session Cookie Present", cookieHeader.includes("cookbook.sid=")],
+    ["Session Cookie Present", cookieHeader.includes(`${SESSION_COOKIE_NAME}=`)],
     ["Cookie Names", cookieNames.length ? cookieNames.join(", ") : "(none)"],
     ["Request Secure", Boolean(req.secure)],
     ["Protocol", req.protocol],
@@ -281,7 +282,7 @@ app.use(express.json());
 app.use(
   session({
     store: sessionStore,
-    name: "cookbook.sid",
+    name: SESSION_COOKIE_NAME,
     // Keep import-time safe for Firebase deploy analysis; local runs validate before listen.
     secret: SESSION_SECRET || "import-time-placeholder-secret",
     resave: false,
@@ -314,7 +315,7 @@ app.use((req, res, next) => {
     method: req.method,
     path: req.originalUrl,
     sessionId: req.sessionID || null,
-    hasSessionCookie: String(req.headers.cookie || "").includes("cookbook.sid="),
+    hasSessionCookie: String(req.headers.cookie || "").includes(`${SESSION_COOKIE_NAME}=`),
     hasUser: Boolean(req.session?.user),
     hxRequest: isHtmx(req),
     secure: Boolean(req.secure),
@@ -492,7 +493,7 @@ function authRequired(req, res) {
   debugLog("auth:blocked", {
     path: req.originalUrl,
     sessionId: req.sessionID || null,
-    hasSessionCookie: String(req.headers.cookie || "").includes("cookbook.sid="),
+    hasSessionCookie: String(req.headers.cookie || "").includes(`${SESSION_COOKIE_NAME}=`),
     cookieNames: Object.keys(parseCookies(String(req.headers.cookie || ""))),
     hasUser: Boolean(req.session?.user),
   });
@@ -627,6 +628,16 @@ async function renderNav(res, req) {
     user: req.session.user || null,
   });
 }
+
+app.get("/debug/session-check", (req, res) => {
+  res.render("partials/status-panel", {
+    title: "Immediate Session Check",
+    message: req.session.user
+      ? "The follow-up request included a valid logged-in session."
+      : "The follow-up request did not include a logged-in session.",
+    debugInfo: buildDebugInfo(req, [["Debug Check", "Executed immediately after auth success."]]),
+  });
+});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -1072,6 +1083,7 @@ app.post("/auth/signup", async (req, res) => {
         user: req.session.user,
         message: "Account created. You are now signed in.",
         nextPath,
+        pauseRedirect: true,
         debugInfo: buildDebugInfo(req, [
           ["Auth Outcome", "Signup succeeded."],
           ["Next Path", nextPath],
@@ -1155,6 +1167,7 @@ app.post("/auth/login", async (req, res) => {
         user: req.session.user,
         message: "",
         nextPath,
+        pauseRedirect: true,
         debugInfo: buildDebugInfo(req, [
           ["Auth Outcome", "Login succeeded."],
           ["Next Path", nextPath],
@@ -1225,6 +1238,7 @@ app.post("/auth/logout", (req, res) => {
       user: null,
       message: "Signed out.",
       nextPath: "/pages/home",
+      pauseRedirect: false,
       debugInfo: buildDebugInfo(req, [["Auth Outcome", "Logout completed."]]),
     });
   });
