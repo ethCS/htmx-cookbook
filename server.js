@@ -19,14 +19,13 @@ for (const envFile of [".env", ".env.SECRET_KEYS"]) {
   }
 }
 
-const {
-  FB_PROJECT_ID = "htmx-cookbook",
-  FB_CLIENT_EMAIL,
-  FB_PRIVATE_KEY,
-  FB_WEB_API_KEY,
-  SESSION_SECRET,
-  APP_PORT = "3000",
-} = process.env;
+const FB_PROJECT_ID =
+  process.env.FB_PROJECT_ID || process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || "htmx-cookbook";
+const FB_CLIENT_EMAIL = process.env.FB_CLIENT_EMAIL;
+const FB_PRIVATE_KEY = process.env.FB_PRIVATE_KEY;
+const FB_WEB_API_KEY = process.env.FB_WEB_API_KEY;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const APP_PORT = process.env.APP_PORT || "3000";
 const isProduction = process.env.NODE_ENV === "production";
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
@@ -52,9 +51,12 @@ if (!admin.apps.length) {
         privateKey: FB_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
     });
-  } else {
-    // In Cloud Run/Functions, default service account credentials are used.
+  } else if (isMain) {
+    // Local direct run without service-account env vars can still use ADC with explicit project id.
     admin.initializeApp({ projectId: FB_PROJECT_ID });
+  } else {
+    // In Cloud Run/Functions, rely on attached service account + runtime project metadata.
+    admin.initializeApp();
   }
 }
 
@@ -340,6 +342,10 @@ function authRequired(req, res) {
 }
 
 async function loginWithFirebase(email, password) {
+  if (!FB_WEB_API_KEY) {
+    throw new Error("Missing FB_WEB_API_KEY for Firebase email/password login.");
+  }
+
   const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(FB_WEB_API_KEY)}`;
   const response = await fetch(endpoint, {
     method: "POST",
