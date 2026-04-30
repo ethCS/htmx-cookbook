@@ -4,7 +4,7 @@ Recipe discovery and personal cookbook app rebuilt as a server-rendered HTMX app
 
 ## Grading Criteria Coverage
 - Uses HTMX: fragment swaps, inline validation, partial page updates, load-more interactions, and HTMX-driven auth/content flows.
-- Hosted-ready backend app: Express server included in the repository with a Render deployment config in [render.yaml](render.yaml).
+- Hosted-ready backend app: Express backend is included in the repository and deployed through Firebase Functions + Hosting.
 - Hits an API: server calls TheMealDB for search, categories, details, and random featured recipes.
 - Hits a database: Firebase Firestore stores user profiles, favorites, and custom recipes.
 - Backend code included: all backend routes and data access live in [server.js](server.js).
@@ -46,25 +46,35 @@ Copy [\.env.example](.env.example) to `.env` or use `.env.SECRET_KEYS` and provi
 3. Open `http://localhost:3000`.
 
 ## Hosted Deployment
-This project is configured for a Node web service deployment on Render.
+This project is configured for Firebase Hosting + Firebase Functions deployment.
 
 1. Push the repository to GitHub.
-2. Create a new Render Web Service from the repo.
-3. Render will detect [render.yaml](render.yaml).
-4. Set the required environment variables in Render.
-5. Create a Render deploy hook in the Render dashboard.
-6. Add that hook URL to the GitHub repository secret `RENDER_DEPLOY_HOOK_URL`.
-7. Push to `main` or run the deploy workflow manually from GitHub Actions.
-8. Verify the health endpoint at `/health`.
+2. Ensure Firebase project default in [.firebaserc](.firebaserc) matches your target project.
+3. Add GitHub repository secret FIREBASE_TOKEN (steps in the GitHub Actions section below).
+4. Push to main or run the deploy workflow manually from GitHub Actions.
+5. Verify the deployed function and hosted site in Firebase Console.
 
 ## GitHub Actions
 Two workflows are included in [\.github/workflows](.github/workflows):
 
 - [\.github/workflows/ci.yml](.github/workflows/ci.yml): runs on pull requests and pushes to validate syntax and compile all Pug templates.
-- [\.github/workflows/deploy-render.yml](.github/workflows/deploy-render.yml): runs on pushes to `main` and triggers the Render deploy hook after validation passes.
+- [\.github/workflows/deploy-firebase.yml](.github/workflows/deploy-firebase.yml): runs on pushes to main and deploys Firebase functions.
 
 ### Required GitHub Secret
-- `RENDER_DEPLOY_HOOK_URL`: the Render deploy hook URL for the production web service.
+- FIREBASE_TOKEN: CI token used by Firebase CLI in GitHub Actions.
+
+How to create FIREBASE_TOKEN:
+1. Run this command on your machine:
+  firebase login:ci
+2. Copy the token output from that command.
+3. In GitHub, open your repository, then Settings > Secrets and variables > Actions.
+4. Click New repository secret.
+5. Name: FIREBASE_TOKEN
+6. Value: paste the token from firebase login:ci
+7. Save.
+
+After that, pushes to main automatically run deployment with:
+npx firebase deploy --only functions
 
 ### What CI Checks
 - `node --check` on [server.js](server.js)
@@ -82,4 +92,4 @@ Two workflows are included in [\.github/workflows](.github/workflows):
 - Mobile-friendly navigation and responsive layout
 
 ## Notes
-- The legacy [firebase.json](firebase.json) file remains in the repo, but the active hosted deployment path for this server-rendered app is the Node backend configuration in [render.yaml](render.yaml) plus the GitHub Actions deploy workflow.
+- Firebase deployment configuration is in [firebase.json](firebase.json), and GitHub Actions handles automatic deployment for functions on main.
