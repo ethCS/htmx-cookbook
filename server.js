@@ -517,6 +517,32 @@ function normalizeNextPath(value) {
   return candidate === "/" ? "/pages/home" : candidate;
 }
 
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.save((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
 async function loginWithFirebase(email, password) {
   if (!FB_WEB_API_KEY) {
     throw new Error("Missing FB_WEB_API_KEY for Firebase email/password login.");
@@ -1032,22 +1058,16 @@ app.post("/auth/signup", async (req, res) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    await regenerateSession(req);
+
     req.session.user = {
       uid: userRecord.uid,
       email,
       username,
     };
 
-    return req.session.save((saveError) => {
-      if (saveError) {
-        return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
-          mode: "signup",
-          message: "Session could not be created. Please try again.",
-          nextPath,
-          debugInfo: buildDebugInfo(req, [["Signup Save Error", String(saveError?.message || saveError)]]),
-        });
-      }
-
+    try {
+      await saveSession(req);
       return res.render("partials/post-auth", {
         user: req.session.user,
         message: "Account created. You are now signed in.",
@@ -1059,7 +1079,14 @@ app.post("/auth/signup", async (req, res) => {
           ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
         ]),
       });
-    });
+    } catch (saveError) {
+      return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
+        mode: "signup",
+        message: "Session could not be created. Please try again.",
+        nextPath,
+        debugInfo: buildDebugInfo(req, [["Signup Save Error", String(saveError?.message || saveError)]]),
+      });
+    }
   } catch (error) {
     if (createdUid && isFirestoreDisabledError(error)) {
       try {
@@ -1114,22 +1141,16 @@ app.post("/auth/login", async (req, res) => {
       profile = null;
     }
 
+    await regenerateSession(req);
+
     req.session.user = {
       uid: decoded.uid,
       email: decoded.email || email,
       username: profile.data()?.username || decoded.name || "Cook",
     };
 
-    return req.session.save((saveError) => {
-      if (saveError) {
-        return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
-          mode: "login",
-          message: "Session could not be created. Please try again.",
-          nextPath,
-          debugInfo: buildDebugInfo(req, [["Login Save Error", String(saveError?.message || saveError)]]),
-        });
-      }
-
+    try {
+      await saveSession(req);
       return res.render("partials/post-auth", {
         user: req.session.user,
         message: "",
@@ -1142,7 +1163,14 @@ app.post("/auth/login", async (req, res) => {
           ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
         ]),
       });
-    });
+    } catch (saveError) {
+      return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
+        mode: "login",
+        message: "Session could not be created. Please try again.",
+        nextPath,
+        debugInfo: buildDebugInfo(req, [["Login Save Error", String(saveError?.message || saveError)]]),
+      });
+    }
   } catch (error) {
     const code = String(error?.code || error?.errorInfo?.code || "");
     const details = String(error?.message || "");
