@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
+import connectSessionFirestore from "connect-session-firestore";
 import admin from "firebase-admin";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +60,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const FirestoreStore = connectSessionFirestore(session);
 const app = express();
 
 app.set("view engine", "pug");
@@ -94,6 +96,10 @@ app.use(express.json());
 
 app.use(
   session({
+    store: new FirestoreStore({
+      database: db,
+      sessions: "sessions",
+    }),
     name: "cookbook.sid",
     // Keep import-time safe for Firebase deploy analysis; local runs validate before listen.
     secret: SESSION_SECRET || "import-time-placeholder-secret",
