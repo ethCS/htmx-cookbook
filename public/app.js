@@ -73,4 +73,27 @@ document.body.addEventListener("htmx:afterSwap", (event) => {
   if (event.target.id === "site-nav") {
     syncMobileMenuState(false);
   }
+
+  for (const panel of document.querySelectorAll("[data-debug-client]")) {
+    const href = panel.querySelector('[data-debug-field="href"]');
+    const origin = panel.querySelector('[data-debug-field="origin"]');
+    const cookieEnabled = panel.querySelector('[data-debug-field="cookieEnabled"]');
+    const documentCookie = panel.querySelector('[data-debug-field="documentCookie"]');
+
+    if (href) {
+      href.textContent = window.location.href;
+    }
+
+    if (origin) {
+      origin.textContent = window.location.origin;
+    }
+
+    if (cookieEnabled) {
+      cookieEnabled.textContent = String(window.navigator.cookieEnabled);
+    }
+
+    if (documentCookie) {
+      documentCookie.textContent = document.cookie || "(empty)";
+    }
+  }
 });

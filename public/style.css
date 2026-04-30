@@ -561,6 +561,12 @@ h4 {
   font-size: 0.86rem;
 }
 
+.debug-panel-subtitle {
+  margin: 1rem 0 0.6rem;
+  color: var(--accent-lavender);
+  font-size: 0.94rem;
+}
+
 .debug-grid {
   display: grid;
   grid-template-columns: minmax(8rem, 12rem) 1fr;

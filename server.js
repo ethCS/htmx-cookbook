@@ -92,6 +92,8 @@ function buildDebugInfo(req, extraEntries = []) {
     ["Protocol", req.protocol],
     ["X-Forwarded-Proto", req.get("X-Forwarded-Proto") || "(missing)"],
     ["Host", req.get("Host") || "(missing)"],
+    ["Origin", req.get("Origin") || "(missing)"],
+    ["Referer", req.get("Referer") || "(missing)"],
     ["Session Has User", Boolean(req.session?.user)],
     ["Session User", summarizeUser(req.session?.user)],
   ];
@@ -1054,6 +1056,7 @@ app.post("/auth/signup", async (req, res) => {
           ["Auth Outcome", "Signup succeeded."],
           ["Next Path", nextPath],
           ["Set-Cookie Prepared", Boolean(res.getHeader("Set-Cookie"))],
+          ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
         ]),
       });
     });
@@ -1136,6 +1139,7 @@ app.post("/auth/login", async (req, res) => {
           ["Next Path", nextPath],
           ["Decoded User", summarizeUser(req.session.user)],
           ["Set-Cookie Prepared", Boolean(res.getHeader("Set-Cookie"))],
+          ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
         ]),
       });
     });
