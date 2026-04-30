@@ -943,13 +943,13 @@ app.post("/auth/login", async (req, res) => {
   } catch (error) {
     const code = String(error?.code || error?.errorInfo?.code || "");
     const details = String(error?.message || "");
-    let message = "Invalid email or password.";
+    let message = `Login failed (${code || "no-code"}): ${details || "No error message returned."}`;
     if (details.includes("EMAIL_NOT_FOUND")) {
       message = "No account found with that email.";
     } else if (details.includes("INVALID_LOGIN_CREDENTIALS")) {
       message = "No matching account/password found. If signup previously failed, create account again after Firestore is enabled.";
     } else if (details.includes("INVALID_PASSWORD")) {
-      message = "Invalid email or password.";
+      message = "Firebase returned INVALID_PASSWORD (the account exists, but the submitted password was rejected).";
     } else if (code.includes("auth/argument-error") || code.includes("auth/invalid-credential")) {
       message = "Firebase token verification failed. Your FB_WEB_API_KEY and Admin SDK credentials are likely from different projects.";
     } else if (code.includes("auth/id-token-expired")) {
@@ -971,10 +971,6 @@ app.post("/auth/login", async (req, res) => {
     } else if (details.includes("fetch failed") || details.includes("ENOTFOUND") || details.includes("ECONNRESET")) {
       message = "Temporary network issue while contacting Firebase Auth. Please try again.";
     } else {
-      if (!isProduction) {
-        const shortDetails = details ? details.slice(0, 180) : "No error message from Firebase.";
-        message = `Login failed (${code || "no-code"}): ${shortDetails}`;
-      }
       // eslint-disable-next-line no-console
       console.error("Login error detail:", { code, details: details || String(error) });
     }
