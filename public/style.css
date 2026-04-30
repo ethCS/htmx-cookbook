@@ -530,70 +530,6 @@ h4 {
   padding: 0;
 }
 
-.debug-panel {
-  margin-top: 1rem;
-  border: 1px solid rgba(203, 184, 255, 0.26);
-  border-radius: 1rem;
-  background: rgba(20, 20, 25, 0.58);
-  overflow: hidden;
-}
-
-.debug-panel summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 0.75rem 0.9rem;
-  color: var(--accent-mint);
-  font-weight: 600;
-  background: linear-gradient(90deg, rgba(169, 243, 208, 0.1), rgba(203, 184, 255, 0.12), rgba(247, 184, 217, 0.1));
-}
-
-.debug-panel summary::-webkit-details-marker {
-  display: none;
-}
-
-.debug-panel-body {
-  padding: 0.85rem 0.9rem 0.95rem;
-}
-
-.debug-panel-copy {
-  margin: 0 0 0.75rem;
-  color: var(--muted);
-  font-size: 0.86rem;
-}
-
-.debug-panel-subtitle {
-  margin: 1rem 0 0.6rem;
-  color: var(--accent-lavender);
-  font-size: 0.94rem;
-}
-
-.debug-grid {
-  display: grid;
-  grid-template-columns: minmax(8rem, 12rem) 1fr;
-  gap: 0.6rem 0.85rem;
-  margin: 0;
-}
-
-.debug-grid dt {
-  color: var(--accent-pink);
-  font-weight: 600;
-}
-
-.debug-grid dd {
-  margin: 0;
-}
-
-.debug-grid pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--ink);
-  background: rgba(9, 9, 12, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.7rem;
-  padding: 0.55rem 0.65rem;
-}
-
 .htmx-indicator {
   opacity: 0;
   transition: opacity 160ms ease;
@@ -824,10 +760,6 @@ h4 {
   margin-bottom: 0;
 }
 
-.debug-follow-up {
-  margin: 1rem 0;
-}
-
 @media (max-width: 52rem) {
   .navbar {
     padding: 0.7rem 0.8rem;
@@ -946,10 +878,6 @@ h4 {
 
   .custom-list-container {
     padding: 0.8rem 0.8rem 0.95rem;
-  }
-
-  .debug-grid {
-    grid-template-columns: 1fr;
   }
 
   .recipe-head {

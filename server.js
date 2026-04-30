@@ -44,71 +44,6 @@ function validateLocalRuntimeEnv() {
   }
 }
 
-function debugLog(event, payload = {}) {
-  try {
-    // eslint-disable-next-line no-console
-    console.log(`[debug] ${event} ${JSON.stringify(payload)}`);
-  } catch {
-    // eslint-disable-next-line no-console
-    console.log(`[debug] ${event}`);
-  }
-}
-
-function summarizeUser(user) {
-  if (!user) {
-    return null;
-  }
-
-  return {
-    uid: user.uid || null,
-    email: user.email || null,
-    username: user.username || null,
-  };
-}
-
-function formatDebugValue(value) {
-  if (value === null) return "null";
-  if (value === undefined) return "undefined";
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
-function buildDebugInfo(req, extraEntries = []) {
-  const cookieHeader = String(req.headers.cookie || "");
-  const cookieNames = Object.keys(parseCookies(cookieHeader));
-  const entries = [
-    ["Route", `${req.method} ${req.originalUrl}`],
-    ["HX Request", isHtmx(req)],
-    ["Managed Runtime", isManagedRuntime],
-    ["Session ID", req.sessionID || "(none)"],
-    ["Session Cookie Present", cookieHeader.includes(`${SESSION_COOKIE_NAME}=`)],
-    ["Cookie Names", cookieNames.length ? cookieNames.join(", ") : "(none)"],
-    ["Request Secure", Boolean(req.secure)],
-    ["Protocol", req.protocol],
-    ["X-Forwarded-Proto", req.get("X-Forwarded-Proto") || "(missing)"],
-    ["Host", req.get("Host") || "(missing)"],
-    ["Origin", req.get("Origin") || "(missing)"],
-    ["Referer", req.get("Referer") || "(missing)"],
-    ["Session Has User", Boolean(req.session?.user)],
-    ["Session User", summarizeUser(req.session?.user)],
-  ];
-
-  for (const entry of extraEntries) {
-    entries.push(entry);
-  }
-
-  return entries.map(([label, value]) => ({
-    label,
-    value: formatDebugValue(value),
-  }));
-}
-
 if (!admin.apps.length) {
   if (FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
     admin.initializeApp({
@@ -167,7 +102,6 @@ class FirestoreSessionStore extends session.Store {
       .get()
       .then((docSnap) => {
         if (!docSnap.exists) {
-          debugLog("session:get:miss", { sid });
           callback(null, null);
           return;
         }
@@ -175,30 +109,20 @@ class FirestoreSessionStore extends session.Store {
         const payload = docSnap.data() || {};
         const sessionData = this.fromStoredSession(payload.session || null);
         if (!sessionData) {
-          debugLog("session:get:empty", { sid });
           callback(null, null);
           return;
         }
 
         const expiresAt = payload.expiresAt;
         if (expiresAt && typeof expiresAt.toDate === "function" && expiresAt.toDate() <= new Date()) {
-          debugLog("session:get:expired", { sid, expiresAt: expiresAt.toDate().toISOString() });
           this.collection.doc(sid).delete().catch(() => {});
           callback(null, null);
           return;
         }
 
-        debugLog("session:get:hit", {
-          sid,
-          hasUser: Boolean(sessionData.user),
-          cookieExpires: sessionData.cookie?.expires || null,
-        });
         callback(null, sessionData);
       })
-      .catch((error) => {
-        debugLog("session:get:error", { sid, message: String(error?.message || error) });
-        callback(error);
-      });
+      .catch((error) => callback(error));
   }
 
   set(sid, sess, callback) {
@@ -212,32 +136,16 @@ class FirestoreSessionStore extends session.Store {
         session: sessionData,
         expiresAt,
       })
-      .then(() => {
-        debugLog("session:set", {
-          sid,
-          hasUser: Boolean(sessionData.user),
-          cookieExpires: sessionData.cookie?.expires || null,
-        });
-        callback && callback(null);
-      })
-      .catch((error) => {
-        debugLog("session:set:error", { sid, message: String(error?.message || error) });
-        callback && callback(error);
-      });
+      .then(() => callback && callback(null))
+      .catch((error) => callback && callback(error));
   }
 
   destroy(sid, callback) {
     this.collection
       .doc(sid)
       .delete()
-      .then(() => {
-        debugLog("session:destroy", { sid });
-        callback && callback(null);
-      })
-      .catch((error) => {
-        debugLog("session:destroy:error", { sid, message: String(error?.message || error) });
-        callback && callback(error);
-      });
+      .then(() => callback && callback(null))
+      .catch((error) => callback && callback(error));
   }
 }
 
@@ -303,39 +211,6 @@ app.use(requireCsrf);
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   next();
-});
-
-app.use((req, res, next) => {
-  if (!req.path.startsWith("/auth") && !req.path.startsWith("/favorites") && !req.path.startsWith("/my-recipes")) {
-    return next();
-  }
-
-  const startedAt = Date.now();
-  debugLog("request:start", {
-    method: req.method,
-    path: req.originalUrl,
-    sessionId: req.sessionID || null,
-    hasSessionCookie: String(req.headers.cookie || "").includes(`${SESSION_COOKIE_NAME}=`),
-    hasUser: Boolean(req.session?.user),
-    hxRequest: isHtmx(req),
-    secure: Boolean(req.secure),
-    forwardedProto: req.get("X-Forwarded-Proto") || null,
-  });
-
-  res.on("finish", () => {
-    const setCookie = res.getHeader("Set-Cookie");
-    debugLog("request:finish", {
-      method: req.method,
-      path: req.originalUrl,
-      statusCode: res.statusCode,
-      durationMs: Date.now() - startedAt,
-      sessionId: req.sessionID || null,
-      hasUser: Boolean(req.session?.user),
-      setCookieCount: Array.isArray(setCookie) ? setCookie.length : setCookie ? 1 : 0,
-    });
-  });
-
-  return next();
 });
 
 const mealDbBase = "https://www.themealdb.com/api/json/v1/1";
@@ -482,21 +357,8 @@ function isFirestoreDisabledError(error) {
 
 function authRequired(req, res) {
   if (req.session.user) {
-    debugLog("auth:allowed", {
-      path: req.originalUrl,
-      sessionId: req.sessionID || null,
-      user: summarizeUser(req.session.user),
-    });
     return true;
   }
-
-  debugLog("auth:blocked", {
-    path: req.originalUrl,
-    sessionId: req.sessionID || null,
-    hasSessionCookie: String(req.headers.cookie || "").includes(`${SESSION_COOKIE_NAME}=`),
-    cookieNames: Object.keys(parseCookies(String(req.headers.cookie || ""))),
-    hasUser: Boolean(req.session?.user),
-  });
 
   const statusMessage = "Please sign in to continue.";
   const statusCode = isHtmx(req) ? 200 : 401;
@@ -504,7 +366,6 @@ function authRequired(req, res) {
     mode: "login",
     message: statusMessage,
     nextPath: normalizeNextPath(req.originalUrl),
-    debugInfo: buildDebugInfo(req, [["Auth Guard", "Blocked because req.session.user was missing."]]),
   });
   return false;
 }
@@ -628,16 +489,6 @@ async function renderNav(res, req) {
     user: req.session.user || null,
   });
 }
-
-app.get("/debug/session-check", (req, res) => {
-  res.render("partials/status-panel", {
-    title: "Immediate Session Check",
-    message: req.session.user
-      ? "The follow-up request included a valid logged-in session."
-      : "The follow-up request did not include a logged-in session.",
-    debugInfo: buildDebugInfo(req, [["Debug Check", "Executed immediately after auth success."]]),
-  });
-});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -1039,7 +890,6 @@ app.get("/auth", (req, res) => {
     mode,
     message: "",
     nextPath: normalizeNextPath(req.query.next),
-    debugInfo: buildDebugInfo(req, [["Auth Screen", "Opened manually or by guard."]]),
   });
 });
 
@@ -1083,20 +933,12 @@ app.post("/auth/signup", async (req, res) => {
         user: req.session.user,
         message: "Account created. You are now signed in.",
         nextPath,
-        pauseRedirect: true,
-        debugInfo: buildDebugInfo(req, [
-          ["Auth Outcome", "Signup succeeded."],
-          ["Next Path", nextPath],
-          ["Set-Cookie Prepared", Boolean(res.getHeader("Set-Cookie"))],
-          ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
-        ]),
       });
     } catch (saveError) {
       return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
         mode: "signup",
         message: "Session could not be created. Please try again.",
         nextPath,
-        debugInfo: buildDebugInfo(req, [["Signup Save Error", String(saveError?.message || saveError)]]),
       });
     }
   } catch (error) {
@@ -1126,7 +968,6 @@ app.post("/auth/signup", async (req, res) => {
       mode: "signup",
       message,
       nextPath,
-      debugInfo: buildDebugInfo(req, [["Signup Error", String(error?.message || error)]]),
     });
   }
 });
@@ -1167,21 +1008,12 @@ app.post("/auth/login", async (req, res) => {
         user: req.session.user,
         message: "",
         nextPath,
-        pauseRedirect: true,
-        debugInfo: buildDebugInfo(req, [
-          ["Auth Outcome", "Login succeeded."],
-          ["Next Path", nextPath],
-          ["Decoded User", summarizeUser(req.session.user)],
-          ["Set-Cookie Prepared", Boolean(res.getHeader("Set-Cookie"))],
-          ["Set-Cookie Header", res.getHeader("Set-Cookie") || "(none)"],
-        ]),
       });
     } catch (saveError) {
       return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
         mode: "login",
         message: "Session could not be created. Please try again.",
         nextPath,
-        debugInfo: buildDebugInfo(req, [["Login Save Error", String(saveError?.message || saveError)]]),
       });
     }
   } catch (error) {
@@ -1223,11 +1055,6 @@ app.post("/auth/login", async (req, res) => {
       mode: "login",
       message,
       nextPath,
-      debugInfo: buildDebugInfo(req, [
-        ["Login Error Code", code || "(none)"],
-        ["Login Error Detail", details || "No error message returned."],
-        ["Next Path", nextPath],
-      ]),
     });
   }
 });
@@ -1238,8 +1065,6 @@ app.post("/auth/logout", (req, res) => {
       user: null,
       message: "Signed out.",
       nextPath: "/pages/home",
-      pauseRedirect: false,
-      debugInfo: buildDebugInfo(req, [["Auth Outcome", "Logout completed."]]),
     });
   });
 });
@@ -1250,26 +1075,20 @@ app.use((err, req, res, next) => {
   }
 
   if (isFirestoreDisabledError(err)) {
-    return res.status(500).render("partials/status-panel", {
-      title: "Firestore not enabled",
-      message: "Cloud Firestore API is disabled for this Firebase project. Enable Firestore in the Firebase console, wait a minute, and retry.",
-      debugInfo: buildDebugInfo(req, [["Unhandled Error", String(err?.message || err)]]),
-    });
+    return res.status(500).send(
+      '<section class="panel" role="alert"><h1>Firestore not enabled</h1><p>Cloud Firestore API is disabled for this Firebase project. Enable Firestore in the Firebase console, wait a minute, and retry.</p></section>',
+    );
   }
 
-  return res.status(500).render("partials/status-panel", {
-    title: "Something went wrong",
-    message: "Please try again.",
-    debugInfo: buildDebugInfo(req, [["Unhandled Error", String(err?.message || err)]]),
-  });
+  if (isHtmx(req)) {
+    return res.status(500).send('<section class="panel" role="alert"><h1>Something went wrong</h1><p>Please try again.</p></section>');
+  }
+
+  return res.status(500).send("<h1>Something went wrong</h1><p>Please try again.</p>");
 });
 
 app.use((req, res) => {
-  res.status(404).render("partials/status-panel", {
-    title: "Page not found",
-    message: "The requested page was not found.",
-    debugInfo: buildDebugInfo(req, [["Route Match", "No matching route handled this request."]]),
-  });
+  res.status(404).send('<section class="panel" role="alert"><h1>Page not found</h1><p>The requested page was not found.</p></section>');
 });
 
 // Only start a local HTTP server when server.js is run directly (not imported).
