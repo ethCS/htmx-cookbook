@@ -1,0 +1,51 @@
+section.page-authenticated(hx-history="false" aria-labelledby="favorites-title")
+  h1#favorites-title Favorite Recipes
+
+  if message
+    p.notice(role="status")= message
+
+  if favorites.length === 0
+    p No favorites saved yet.
+    button(
+      type="button"
+      hx-get="/pages/home"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+    ) Explore recipes
+  else
+    ul.recipe-grid
+      each fav in favorites
+        li
+          article.card
+            button.image-details-trigger(
+              type="button"
+              hx-get=`/recipe/${fav.recipeId}`
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+              aria-label=`View recipe details for ${fav.title}`
+            )
+              img.card-image(src=fav.image alt=fav.title loading="lazy")
+            .card-body
+              h2.card-title= fav.title
+              if fav.category
+                p.meta= fav.category
+
+              .card-actions
+                button(
+                  type="button"
+                  hx-get=`/recipe/${fav.recipeId}`
+                  hx-target="#main-content"
+                  hx-swap="innerHTML"
+                  hx-push-url="true"
+                ) View
+
+                button(
+                  type="button"
+                  hx-delete=`/favorites/${fav.recipeId}`
+                  hx-target="#main-content"
+                  hx-swap="innerHTML"
+                  hx-confirm=`Remove ${fav.title} from favorites?`
+                  aria-label=`Remove ${fav.title} from favorites`
+                ) Remove

@@ -1,0 +1,39 @@
+article.card
+  button.image-details-trigger(
+    type="button"
+    hx-get=`/recipe/${meal.idMeal}`
+    hx-target="#main-content"
+    hx-swap="innerHTML"
+    hx-push-url="true"
+    aria-label=`View recipe details for ${meal.strMeal}`
+  )
+    div(hx-disable)
+      img.card-image(src=meal.strMealThumb alt=meal.strMeal loading="lazy")
+  .card-body
+    div(hx-disable)
+      h3.card-title= meal.strMeal
+      if meal.strCategory
+        p.meta= meal.strCategory
+
+    .card-actions
+      button(
+        type="button"
+        hx-get=`/recipe/${meal.idMeal}`
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        hx-push-url="true"
+      ) View
+
+      if user
+        .favorite-toggle(id=`favorite-action-${meal.idMeal}`)
+          include favorite-action
+      else
+        button(
+          class="save-action"
+          type="button"
+          hx-get="/auth?mode=login"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+          aria-label=`Sign in to save ${meal.strMeal}`
+        ) Save

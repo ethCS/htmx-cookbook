@@ -1,0 +1,64 @@
+nav.navbar(aria-label="Primary")
+  .nav-inner
+    button.brand(
+      type="button"
+      hx-get="/pages/home"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+      aria-label="Go to home"
+    ) CSCI322 HTMX Cookbook
+
+    button.nav-toggle-button(
+      type="button"
+      aria-controls="primary-nav-menu"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    ) Menu
+
+    #primary-nav-menu.nav-menu
+      .nav-menu-inner
+        ul.nav-links
+          li
+            button(
+              type="button"
+              hx-get="/pages/home"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+            ) Home
+          li
+            button(
+              type="button"
+              hx-get="/favorites"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+            ) Favorites
+          li
+            button(
+              type="button"
+              hx-get="/my-recipes"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+            ) My Recipes
+
+        if user
+          .auth-actions
+            p.signed-in Signed in as #{user.username || user.email}
+            form(
+              hx-post="/auth/logout"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+            )
+              button(type="submit") Sign out
+        else
+          .auth-actions
+            button(
+              type="button"
+              hx-get="/auth?mode=login"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+            ) Sign in

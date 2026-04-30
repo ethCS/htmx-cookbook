@@ -1,0 +1,18 @@
+- const mealIdValue = mealId || meal.idMeal;
+- const titleValue = title || meal.strMeal;
+- const imageValue = image || meal.strMealThumb;
+- const categoryValue = category || meal.strCategory || "";
+
+form(
+  hx-patch=`/favorites/${mealIdValue}`
+  hx-target=`#favorite-action-${mealIdValue}`
+  hx-swap="outerHTML"
+)
+  input(type="hidden" name="title" value=titleValue)
+  input(type="hidden" name="image" value=imageValue)
+  input(type="hidden" name="category" value=categoryValue)
+  button(
+    class=isFavorite ? "favorite-save is-saved" : "favorite-save"
+    type="submit"
+    aria-label=isFavorite ? `Remove ${titleValue} from favorites` : `Save ${titleValue} to favorites`
+  )= isFavorite ? "Saved" : "Save"

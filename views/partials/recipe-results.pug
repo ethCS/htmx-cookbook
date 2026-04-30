@@ -1,0 +1,31 @@
+section.results(aria-labelledby="results-title")
+  h1#results-title= title
+
+  - let nextPageUrl = `/search?page=${page + 1}`
+  - if (searchQuery) nextPageUrl = `/search?q=${encodeURIComponent(searchQuery)}&page=${page + 1}`
+  - if (searchCategory) nextPageUrl = `/search?category=${encodeURIComponent(searchCategory)}&page=${page + 1}`
+
+  if searchQuery
+    p.meta Search query: #{searchQuery}
+  else if searchCategory
+    p.meta Category: #{searchCategory}
+
+  if meals.length === 0
+    p(role="status") No recipes found.
+  else
+    ul.recipe-grid
+      each meal in meals
+        - const isFavorite = favoriteIds.has(String(meal.idMeal))
+        li
+          include recipe-card
+
+  if hasMore
+    .load-more-wrap
+      button(
+        type="button"
+        hx-get=nextPageUrl
+        hx-target="#search-results"
+        hx-swap="innerHTML show:#search-results:top"
+        hx-indicator="#load-more-indicator"
+      ) Load more recipes
+      p#load-more-indicator.htmx-indicator.meta Loading more recipes...

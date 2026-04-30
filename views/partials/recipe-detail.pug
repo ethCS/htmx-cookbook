@@ -1,0 +1,56 @@
+section.recipe-detail(aria-labelledby="recipe-title")
+  h1#recipe-title
+    span(hx-disable)= meal.strMeal
+
+  .detail-hero
+    div(hx-disable)
+      img(src=meal.strMealThumb alt=meal.strMeal)
+    .detail-actions
+      button(
+        type="button"
+        hx-get="/pages/home"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        hx-push-url="true"
+      ) Back to Home
+
+      if user
+        .favorite-toggle(id=`favorite-action-${meal.idMeal}`)
+          - const mealId = meal.idMeal
+          - const isFavorite = favorite
+          - const title = meal.strMeal
+          - const image = meal.strMealThumb
+          - const category = meal.strCategory || ""
+          include favorite-action
+
+  dl.meta-list
+    if meal.strCategory
+      dt Category
+      dd
+        span(hx-disable)= meal.strCategory
+    if meal.strArea
+      dt Region
+      dd
+        span(hx-disable)= meal.strArea
+
+  .detail-columns
+    section(aria-labelledby="ingredients-title")
+      h2#ingredients-title Ingredients
+      ul.ingredients
+        each item in ingredients
+          li
+            span= item.ingredient
+            span= item.measure
+
+    section(aria-labelledby="instructions-title")
+      h2#instructions-title Instructions
+      // Third-party recipe text is wrapped in hx-disable to prevent HTMX attribute injection.
+      div(hx-disable)
+        each paragraph in (meal.strInstructions || "").split(/\r\n|\n|\r/).filter((line) => line.trim().length > 0)
+          p= paragraph.trim()
+
+      .resource-links
+        if meal.strSource
+          a(href=meal.strSource target="_blank" rel="noopener noreferrer") Original source
+        if meal.strYoutube
+          a(href=meal.strYoutube target="_blank" rel="noopener noreferrer") YouTube video

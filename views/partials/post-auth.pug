@@ -1,0 +1,28 @@
+#site-nav(hx-swap-oob="innerHTML")
+  include nav
+
+if user
+  section.auth-complete(
+    aria-live="polite"
+    hx-get="/pages/home"
+    hx-trigger="load delay:350ms"
+    hx-target="#main-content"
+    hx-swap="innerHTML"
+    hx-push-url="true"
+  )
+    h1 Signed in
+    if message
+      p.notice= message
+    p.meta Redirecting to home...
+else
+  section.auth-complete(aria-live="polite")
+    h1 Signed out
+    if message
+      p.notice= message
+    button(
+      type="button"
+      hx-get="/pages/home"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+      hx-push-url="true"
+    ) Continue

@@ -1,0 +1,53 @@
+section.page-home(aria-labelledby="home-title")
+  .hero.hero-center
+    p.kicker CSCI322 Final Project
+    h1#home-title HTMX Cookbook
+    p.lead Find recipes instantly, save favorites, and build a custom cookbook.
+
+    .search-panel
+      form.search-form(
+        hx-get="/search"
+        hx-target="#search-results"
+        hx-swap="innerHTML show:#search-results:top"
+      )
+        label.sr-only(for="search-query") Search recipes by name
+        .search-row.search-row-center
+          input#search-query(type="search" name="q" placeholder="Search recipes: ramen, pasta, tacos..." required)
+          button(type="submit" hx-indicator="#search-indicator") Search
+
+  section(aria-labelledby="category-title")
+    h2#category-title Browse By Category
+    ul.tag-list
+      each category in categories
+        - const categoryName = String(category.strCategory || "")
+        li
+          button.tag(
+            type="button"
+            hx-get=`/search?category=${encodeURIComponent(categoryName)}`
+            hx-target="#search-results"
+            hx-swap="innerHTML show:#search-results:top"
+            aria-label=`Browse ${categoryName} recipes`
+          )= categoryName
+
+  section(aria-labelledby="featured-title")
+    .section-heading
+      h2#featured-title Discover Recipes
+      button(
+        type="button"
+        hx-get="/pages/home"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        aria-label="Load a new set of featured recipes"
+      )
+        span.refresh-icon(aria-hidden="true") ↻
+        |  Refresh
+
+    ul.recipe-grid
+      each meal in featured
+        - const isFavorite = favoriteIds ? favoriteIds.has(String(meal.idMeal)) : false
+        li
+          include partials/recipe-card
+
+  section#search-results.results(aria-live="polite" aria-labelledby="results-title")
+    h2#results-title Search Results
+    p.meta Use the search form or pick a category to load recipes.

@@ -1,0 +1,8 @@
+.git
+.github
+.firebase
+.dist
+.env
+.env.*
+*.patch
+node_modules

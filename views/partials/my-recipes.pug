@@ -1,0 +1,88 @@
+section.page-authenticated(hx-history="false" aria-labelledby="my-recipes-title")
+  h1#my-recipes-title My Recipes
+
+  if message
+    p.notice(role="status")= message
+
+  .split-layout.custom-recipes-shell
+    section.custom-form-panel(aria-labelledby="create-edit-title")
+      if editRecipe
+        h2#create-edit-title Edit Recipe
+      else
+        h2#create-edit-title Create Recipe
+
+      if editRecipe
+        form(
+          hx-put=`/my-recipes/${editRecipe.id}`
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        )
+          include my-recipes-form-fields
+          .form-row
+            button(type="submit") Save Changes
+            button(
+              type="button"
+              hx-get="/my-recipes"
+              hx-target="#main-content"
+              hx-swap="innerHTML"
+            ) Cancel
+      else
+        form(
+          hx-post="/my-recipes"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+        )
+          include my-recipes-form-fields
+          .form-row
+            button(type="submit") Add Recipe
+
+    section.custom-list-panel(aria-labelledby="custom-list-title")
+      .custom-list-container
+        h2#custom-list-title Your Custom Recipes
+        if recipes.length === 0
+          p No custom recipes yet.
+        else
+          ul.recipe-list
+            each recipe in recipes
+              li
+                article.card.custom-recipe-card
+                  .recipe-head
+                    h3.card-title= recipe.title
+                    .card-actions
+                      button(
+                        type="button"
+                        hx-get=`/my-recipes/${recipe.id}/edit`
+                        hx-target="#main-content"
+                        hx-swap="innerHTML"
+                      ) Edit
+                      button(
+                        type="button"
+                        hx-delete=`/my-recipes/${recipe.id}`
+                        hx-target="#main-content"
+                        hx-swap="innerHTML"
+                        hx-confirm=`Delete ${recipe.title}?`
+                      ) Delete
+
+                  if recipe.description
+                    // User-generated content is wrapped in hx-disable to prevent HTMX attribute injection.
+                    p.meta(hx-disable)= recipe.description
+
+                  if recipe.prepTime || recipe.servings || (recipe.tags && recipe.tags.length > 0)
+                    ul.chip-list
+                      if recipe.prepTime
+                        li.chip #{recipe.prepTime} min
+                      if recipe.servings
+                        li.chip Serves #{recipe.servings}
+                      if recipe.tags && recipe.tags.length > 0
+                        each tag in recipe.tags
+                          li.chip ##{tag}
+
+                  div(hx-disable)
+                    h4 Ingredients
+                    ul.ingredients
+                      each ingredient in (recipe.ingredients || [])
+                        li= ingredient
+
+                    h4 Instructions
+                    each paragraph in (recipe.instructions || "").split(/\r\n|\n|\r/).filter((line) => line.trim().length > 0)
+                      p= paragraph.trim()

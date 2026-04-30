@@ -2,15 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cookbook</title>
+    <meta name="description" content="Search meals, save favorites, and manage custom recipes with HTMX." />
+    <title>HTMX Cookbook</title>
+    <link rel="stylesheet" href="/public/style.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="/public/app.js" defer></script>
   </head>
   <body>
-    <script>
-      (function(){var t=localStorage.getItem("theme");var d=t==="light"||t==="dark"?t:matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",d)})();
-    </script>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+      <div id="site-nav" hx-get="/fragments/nav" hx-trigger="load" hx-swap="innerHTML" aria-live="polite"></div>
+    </header>
+
+    <main
+      id="main-content"
+      class="content-shell"
+      aria-live="polite"
+      hx-get="/pages/home"
+      hx-trigger="load"
+      hx-swap="innerHTML"
+    ></main>
   </body>
 </html>

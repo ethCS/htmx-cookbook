@@ -1,0 +1,105 @@
+section.auth-panel(aria-labelledby="auth-title")
+  if mode === "signup"
+    h1#auth-title Create account
+  else
+    h1#auth-title Sign in
+
+  if message
+    p.notice(role="status")= message
+
+  .mode-switch
+    button(
+      type="button"
+      hx-get="/auth?mode=login"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+      aria-pressed=mode === "login" ? "true" : "false"
+    ) Sign in
+    button(
+      type="button"
+      hx-get="/auth?mode=signup"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+      aria-pressed=mode === "signup" ? "true" : "false"
+    ) Sign up
+
+  if mode === "signup"
+    form(
+      hx-post="/auth/signup"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    )
+      label(for="username") Username
+      input#username(
+        type="text"
+        name="username"
+        required
+        autocomplete="username"
+        hx-get="/validate/auth/username"
+        hx-trigger="input changed delay:350ms"
+        hx-target="#username-feedback"
+        hx-swap="innerHTML"
+      )
+      #username-feedback
+
+      label(for="signup-email") Email
+      input#signup-email(
+        type="email"
+        name="email"
+        required
+        autocomplete="email"
+        hx-get="/validate/auth/email"
+        hx-trigger="input changed delay:350ms"
+        hx-target="#signup-email-feedback"
+        hx-swap="innerHTML"
+      )
+      #signup-email-feedback
+
+      label(for="signup-password") Password
+      input#signup-password(
+        type="password"
+        name="password"
+        required
+        minlength="6"
+        autocomplete="new-password"
+        hx-get="/validate/auth/password"
+        hx-trigger="input changed delay:350ms"
+        hx-target="#signup-password-feedback"
+        hx-swap="innerHTML"
+      )
+      #signup-password-feedback
+
+      button(type="submit") Create account
+  else
+    form(
+      hx-post="/auth/login"
+      hx-target="#main-content"
+      hx-swap="innerHTML"
+    )
+      label(for="login-email") Email
+      input#login-email(
+        type="email"
+        name="email"
+        required
+        autocomplete="email"
+        hx-get="/validate/auth/email"
+        hx-trigger="input changed delay:350ms"
+        hx-target="#login-email-feedback"
+        hx-swap="innerHTML"
+      )
+      #login-email-feedback
+
+      label(for="login-password") Password
+      input#login-password(
+        type="password"
+        name="password"
+        required
+        autocomplete="current-password"
+        hx-get="/validate/auth/password"
+        hx-trigger="input changed delay:350ms"
+        hx-target="#login-password-feedback"
+        hx-swap="innerHTML"
+      )
+      #login-password-feedback
+
+      button(type="submit") Sign in

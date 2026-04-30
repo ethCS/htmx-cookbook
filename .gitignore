@@ -28,3 +28,7 @@ dist
 .env
 .env.local
 *.local
+.env.SECRET_KEYS
+.dist/
+cookies.txt
+.tmp-search.html

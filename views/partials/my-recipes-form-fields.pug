@@ -1,0 +1,55 @@
+div.form-attribute
+	label(for="recipe-title") Title
+	input#recipe-title(
+		type="text"
+		name="title"
+		required
+		value=editRecipe ? editRecipe.title : ""
+		hx-get="/validate/recipe/title"
+		hx-trigger="input changed delay:350ms"
+		hx-target="#recipe-title-feedback"
+		hx-swap="innerHTML"
+	)
+	#recipe-title-feedback
+
+div.form-attribute
+	label(for="recipe-description") Description
+	textarea#recipe-description(name="description" rows="3")= editRecipe ? editRecipe.description : ""
+
+div.form-attribute
+	label(for="recipe-prep-time") Prep time (minutes)
+	input#recipe-prep-time(type="number" name="prepTime" min="0" value=editRecipe && editRecipe.prepTime ? editRecipe.prepTime : "")
+
+div.form-attribute
+	label(for="recipe-servings") Servings
+	input#recipe-servings(type="number" name="servings" min="1" value=editRecipe && editRecipe.servings ? editRecipe.servings : "")
+
+div.form-attribute
+	label(for="recipe-tags") Tags (comma separated)
+	input#recipe-tags(type="text" name="tags" value=editRecipe && editRecipe.tags ? editRecipe.tags.join(", ") : "")
+
+div.form-attribute
+	label(for="recipe-ingredients") Ingredients (one per line)
+	textarea#recipe-ingredients(
+		name="ingredients"
+		rows="6"
+		required
+		hx-get="/validate/recipe/ingredients"
+		hx-trigger="input changed delay:350ms"
+		hx-target="#recipe-ingredients-feedback"
+		hx-swap="innerHTML"
+	)= editRecipe && editRecipe.ingredients ? editRecipe.ingredients.join("\n") : ""
+	#recipe-ingredients-feedback
+
+div.form-attribute
+	label(for="recipe-instructions") Instructions
+	textarea#recipe-instructions(
+		name="instructions"
+		rows="8"
+		required
+		hx-get="/validate/recipe/instructions"
+		hx-trigger="input changed delay:350ms"
+		hx-target="#recipe-instructions-feedback"
+		hx-swap="innerHTML"
+	)= editRecipe ? editRecipe.instructions : ""
+	#recipe-instructions-feedback
