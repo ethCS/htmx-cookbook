@@ -157,7 +157,7 @@ const app = express();
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 app.disable("x-powered-by");
 
 app.use((req, res, next) => {
@@ -197,8 +197,8 @@ app.use(
     proxy: true,
     cookie: {
       httpOnly: true,
-      sameSite: isProduction ? "none" : "lax",
-      secure: isProduction,
+      sameSite: "lax",
+      secure: isProduction ? "auto" : false,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   }),
