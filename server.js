@@ -25,8 +25,9 @@ const FB_CLIENT_EMAIL = process.env.FB_CLIENT_EMAIL;
 const FB_PRIVATE_KEY = process.env.FB_PRIVATE_KEY;
 const FB_WEB_API_KEY = process.env.FB_WEB_API_KEY;
 const SESSION_SECRET = process.env.SESSION_SECRET;
-const APP_PORT = process.env.APP_PORT || "3000";
+const APP_PORT = process.env.PORT || process.env.APP_PORT || "3000";
 const isProduction = process.env.NODE_ENV === "production";
+const isManagedRuntime = Boolean(process.env.K_SERVICE || process.env.PORT || process.env.FUNCTION_TARGET);
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
@@ -43,7 +44,7 @@ function validateLocalRuntimeEnv() {
 }
 
 if (!admin.apps.length) {
-  if (isMain && FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
+  if (FB_CLIENT_EMAIL && FB_PRIVATE_KEY) {
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: FB_PROJECT_ID,
@@ -51,7 +52,7 @@ if (!admin.apps.length) {
         privateKey: FB_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
     });
-  } else if (isMain) {
+  } else if (!isManagedRuntime) {
     // Local direct run without service-account env vars can still use ADC with explicit project id.
     admin.initializeApp({ projectId: FB_PROJECT_ID });
   } else {
@@ -1015,7 +1016,9 @@ app.use((req, res) => {
 
 // Only start a local HTTP server when server.js is run directly (not imported).
 if (isMain) {
-  validateLocalRuntimeEnv();
+  if (!isManagedRuntime) {
+    validateLocalRuntimeEnv();
+  }
   app.listen(Number(APP_PORT), () => {
     // eslint-disable-next-line no-console
     console.log(`HTMX Cookbook running on http://localhost:${APP_PORT}`);
