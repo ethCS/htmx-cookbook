@@ -3,10 +3,4 @@
 import { onRequest } from "firebase-functions/v2/https";
 import { app } from "./server.js";
 
-export const api = onRequest(
-	{
-		region: "us-central1",
-		maxInstances: 1,
-	},
-	app,
-);
+export const api = onRequest({ region: "us-central1" }, app);

@@ -27,6 +27,7 @@ const {
   SESSION_SECRET,
   APP_PORT = "3000",
 } = process.env;
+const isProduction = process.env.NODE_ENV === "production";
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
@@ -101,8 +102,8 @@ app.use(
     proxy: true,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: "auto",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   }),
@@ -785,7 +786,7 @@ app.post("/auth/signup", async (req, res) => {
       username,
     };
 
-    req.session.save((saveError) => {
+    return req.session.save((saveError) => {
       if (saveError) {
         return res.status(htmxFriendlyStatus(req, 500)).render("partials/auth", {
           mode: "signup",
