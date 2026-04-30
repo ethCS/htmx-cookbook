@@ -56,7 +56,7 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: FIREBASE_PROJECT_ID,
         clientEmail: FIREBASE_CLIENT_EMAIL,
-        privateKey: normalizePrivateKey(FIREBASE_PRIVATE_KEY),
+        privateKey: normalizePrivateKey(FIREBASE_PRIVATE_KEY).replace(/\\n/g, "\n"),
       }),
       projectId: FIREBASE_PROJECT_ID,
     });
