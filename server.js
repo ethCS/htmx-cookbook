@@ -28,16 +28,6 @@ const {
   APP_PORT = "3000",
 } = process.env;
 
-function normalizePrivateKey(rawKey) {
-  return String(rawKey || "")
-    .replace(/\\\r?\n/g, "\n")
-    .replace(/\\n/g, "\n");
-}
-
-// When running as a Cloud Function the runtime provides Application Default
-// Credentials automatically, so explicit service-account keys are optional.
-const isCloudFunction = !!process.env.K_SERVICE || !!process.env.FUNCTION_TARGET;
-
 function validateLocalRuntimeEnv() {
   const missing = [];
   if (!SESSION_SECRET) missing.push("SESSION_SECRET");
@@ -56,12 +46,11 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: FB_PROJECT_ID,
         clientEmail: FB_CLIENT_EMAIL,
-        privateKey: normalizePrivateKey(FB_PRIVATE_KEY).replace(/\\n/g, "\n"),
+        privateKey: FB_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
-      projectId: FB_PROJECT_ID,
     });
   } else {
-    // Cloud Functions runtime: use Application Default Credentials.
+    // In Cloud Run/Functions, default service account credentials are used.
     admin.initializeApp({ projectId: FB_PROJECT_ID });
   }
 }
