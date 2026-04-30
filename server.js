@@ -824,7 +824,7 @@ app.get("/auth", (req, res) => {
 
 app.post("/auth/signup", async (req, res) => {
   const email = String(req.body.email || "").trim();
-  const password = String(req.body.password || "").trim();
+  const password = String(req.body.password || "");
   const username = String(req.body.username || "").trim();
 
   if (!email || !password || !username) {
@@ -897,7 +897,7 @@ app.post("/auth/signup", async (req, res) => {
 
 app.post("/auth/login", async (req, res) => {
   const email = String(req.body.email || "").trim();
-  const password = String(req.body.password || "").trim();
+  const password = String(req.body.password || "");
 
   if (!email || !password) {
     return res.status(htmxFriendlyStatus(req, 400)).render("partials/auth", {
@@ -965,6 +965,10 @@ app.post("/auth/login", async (req, res) => {
     } else if (details.includes("fetch failed") || details.includes("ENOTFOUND") || details.includes("ECONNRESET")) {
       message = "Temporary network issue while contacting Firebase Auth. Please try again.";
     } else {
+      if (!isProduction) {
+        const shortDetails = details ? details.slice(0, 180) : "No error message from Firebase.";
+        message = `Login failed (${code || "no-code"}): ${shortDetails}`;
+      }
       // eslint-disable-next-line no-console
       console.error("Login error detail:", { code, details: details || String(error) });
     }
