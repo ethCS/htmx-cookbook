@@ -50,7 +50,7 @@ section.recipe-detail(aria-labelledby="recipe-title")
           p= paragraph.trim()
 
       .resource-links
-        if meal.strSource
-          a(href=meal.strSource target="_blank" rel="noopener noreferrer") Original source
-        if meal.strYoutube
-          a(href=meal.strYoutube target="_blank" rel="noopener noreferrer") YouTube video
+        if sourceUrl
+          a(href=sourceUrl target="_blank" rel="noopener noreferrer") Original source
+        if youtubeUrl
+          a(href=youtubeUrl target="_blank" rel="noopener noreferrer") YouTube video

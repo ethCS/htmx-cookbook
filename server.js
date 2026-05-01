@@ -32,6 +32,33 @@ const isManagedRuntime = Boolean(process.env.K_SERVICE || process.env.PORT || pr
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 
+const MAX_QUERY_LENGTH = 80;
+const MAX_CATEGORY_LENGTH = 40;
+const MAX_USERNAME_LENGTH = 40;
+const MAX_TITLE_LENGTH = 120;
+const MAX_DESCRIPTION_LENGTH = 800;
+const MAX_INGREDIENT_LINE_LENGTH = 160;
+const MAX_INGREDIENT_LINES = 80;
+const MAX_INSTRUCTIONS_LENGTH = 8000;
+const MAX_TAG_COUNT = 20;
+const MAX_TAG_LENGTH = 30;
+const MAX_USER_DOCS_PER_COLLECTION = 200;
+const MEAL_ID_RE = /^\d{1,12}$/;
+const FIRESTORE_ID_RE = /^[A-Za-z0-9_-]{8,128}$/;
+const RATE_LIMIT_BUCKETS = new Map();
+const MAX_RATE_LIMIT_BUCKETS = 8000;
+const ALLOWED_QUERY_KEYS = {
+  search: new Set(["q", "category", "page", "_"]),
+  auth: new Set(["mode", "next", "_"]),
+  validateEmail: new Set(["email", "_"]),
+  validatePassword: new Set(["password", "_"]),
+  validateUsername: new Set(["username", "_"]),
+  validateRecipeTitle: new Set(["title", "_"]),
+  validateRecipeIngredients: new Set(["ingredients", "_"]),
+  validateRecipeInstructions: new Set(["instructions", "_"]),
+};
+const ALLOWED_USER_SUBCOLLECTIONS = new Set(["favorites", "customRecipes"]);
+
 function validateLocalRuntimeEnv() {
   const missing = [];
   if (!SESSION_SECRET) missing.push("SESSION_SECRET");
@@ -165,7 +192,12 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (isProduction) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
   res.setHeader(
     "Content-Security-Policy",
     [
@@ -184,8 +216,8 @@ app.use((req, res, next) => {
 });
 
 app.use("/public", express.static(path.join(__dirname, "public"), { extensions: ["css"] }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: "32kb", parameterLimit: 200 }));
+app.use(express.json({ limit: "32kb" }));
 
 app.use(
   session({
@@ -204,6 +236,74 @@ app.use(
     },
   }),
 );
+
+function createRateLimitMiddleware({ windowMs, max, keyPrefix }) {
+  return (req, res, next) => {
+    const now = Date.now();
+    pruneRateLimitBuckets(now);
+
+    const clientIp = String(req.ip || req.socket?.remoteAddress || "unknown");
+    const key = `${keyPrefix}:${clientIp}`;
+    const record = RATE_LIMIT_BUCKETS.get(key);
+
+    if (!record || record.resetAt <= now) {
+      RATE_LIMIT_BUCKETS.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+
+    record.count += 1;
+    if (record.count > max) {
+      res.setHeader("Retry-After", Math.ceil((record.resetAt - now) / 1000));
+      return res.status(htmxFriendlyStatus(req, 429)).send(
+        '<section class="panel" role="alert"><h1>Too many requests</h1><p>Please wait a moment and try again.</p></section>',
+      );
+    }
+
+    RATE_LIMIT_BUCKETS.set(key, record);
+    return next();
+  };
+}
+
+function pruneRateLimitBuckets(now) {
+  for (const [key, value] of RATE_LIMIT_BUCKETS.entries()) {
+    if (!value || typeof value.resetAt !== "number" || value.resetAt <= now) {
+      RATE_LIMIT_BUCKETS.delete(key);
+    }
+  }
+
+  if (RATE_LIMIT_BUCKETS.size <= MAX_RATE_LIMIT_BUCKETS) {
+    return;
+  }
+
+  // If the map still exceeds cap (e.g., concentrated active abuse), drop oldest keys first.
+  const overflow = RATE_LIMIT_BUCKETS.size - MAX_RATE_LIMIT_BUCKETS;
+  let removed = 0;
+  for (const key of RATE_LIMIT_BUCKETS.keys()) {
+    RATE_LIMIT_BUCKETS.delete(key);
+    removed += 1;
+    if (removed >= overflow) {
+      break;
+    }
+  }
+}
+
+const globalRateLimit = createRateLimitMiddleware({
+  windowMs: 60 * 1000,
+  max: 240,
+  keyPrefix: "global",
+});
+const authRateLimit = createRateLimitMiddleware({
+  windowMs: 15 * 60 * 1000,
+  max: 12,
+  keyPrefix: "auth",
+});
+const writeRateLimit = createRateLimitMiddleware({
+  windowMs: 60 * 1000,
+  max: 90,
+  keyPrefix: "write",
+});
+
+app.use(globalRateLimit);
 
 app.use(issueCsrfCookie);
 app.use(requireCsrf);
@@ -301,6 +401,91 @@ function parseCookies(cookieHeader = "") {
     }, {});
 }
 
+function safeTokenMatch(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") {
+    return false;
+  }
+
+  const aBuffer = Buffer.from(a);
+  const bBuffer = Buffer.from(b);
+  if (aBuffer.length !== bBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(aBuffer, bBuffer);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeSingleLine(value, maxLength) {
+  return String(value || "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function sanitizeMultiline(value, maxLength) {
+  return String(value || "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function parsePositiveInt(value, fallback = 1) {
+  const num = Number.parseInt(String(value || ""), 10);
+  return Number.isNaN(num) || num <= 0 ? fallback : num;
+}
+
+function parseBoundedInt(value, min, max) {
+  const num = Number.parseInt(String(value || ""), 10);
+  if (Number.isNaN(num)) {
+    return null;
+  }
+  if (num < min || num > max) {
+    return null;
+  }
+  return num;
+}
+
+function isMealId(value) {
+  return MEAL_ID_RE.test(String(value || ""));
+}
+
+function isFirestoreId(value) {
+  return FIRESTORE_ID_RE.test(String(value || ""));
+}
+
+function safeHttpUrl(raw) {
+  const candidate = String(raw || "").trim();
+  if (!candidate) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function hasValidSessionUser(req) {
+  const user = req.session?.user;
+  return Boolean(user && typeof user.uid === "string" && user.uid.length > 0);
+}
+
 function appendCookie(res, cookieValue) {
   const existing = res.getHeader("Set-Cookie");
   if (!existing) {
@@ -316,18 +501,34 @@ function issueCsrfCookie(req, res, next) {
   const cookies = parseCookies(req.headers.cookie || "");
   req.cookies = cookies;
 
-  if (cookies.csrfToken) {
-    req.csrfToken = cookies.csrfToken;
-    return next();
+  let csrfToken = typeof req.session?.csrfToken === "string" ? req.session.csrfToken : "";
+  if (!csrfToken) {
+    csrfToken = crypto.randomBytes(24).toString("hex");
+    req.session.csrfToken = csrfToken;
   }
 
-  const csrfToken = crypto.randomBytes(24).toString("hex");
   req.csrfToken = csrfToken;
   req.cookies.csrfToken = csrfToken;
 
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  appendCookie(res, `csrfToken=${encodeURIComponent(csrfToken)}; Path=/; SameSite=Lax${secure}`);
+  if (cookies.csrfToken !== csrfToken) {
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    appendCookie(
+      res,
+      `csrfToken=${encodeURIComponent(csrfToken)}; Path=/; SameSite=Lax; Max-Age=7200${secure}`,
+    );
+  }
+
   return next();
+}
+
+function sameOriginCheck(req) {
+  const origin = String(req.get("Origin") || "").trim();
+  if (!origin) {
+    return true;
+  }
+
+  const expectedOrigin = `${req.protocol}://${req.get("host")}`;
+  return origin === expectedOrigin;
 }
 
 function requireCsrf(req, res, next) {
@@ -335,13 +536,28 @@ function requireCsrf(req, res, next) {
     return next();
   }
 
+  if (!sameOriginCheck(req)) {
+    return res.status(htmxFriendlyStatus(req, 403)).send(
+      '<section class="panel" role="alert"><h1>Request blocked</h1><p>Cross-origin request denied.</p></section>',
+    );
+  }
+
+  const fetchSite = String(req.get("Sec-Fetch-Site") || "").toLowerCase();
+  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) {
+    return res.status(htmxFriendlyStatus(req, 403)).send(
+      '<section class="panel" role="alert"><h1>Request blocked</h1><p>Untrusted request context detected.</p></section>',
+    );
+  }
+
   const cookieToken = req.cookies?.csrfToken;
   const headerToken = req.get("X-CSRF-Token");
-  if (cookieToken && headerToken && cookieToken === headerToken) {
+  const sessionToken = req.session?.csrfToken;
+
+  if (safeTokenMatch(cookieToken, sessionToken) && safeTokenMatch(headerToken, sessionToken)) {
     return next();
   }
 
-  return res.status(403).send(
+  return res.status(htmxFriendlyStatus(req, 403)).send(
     '<section class="panel" role="alert"><h1>Request blocked</h1><p>Your session token was missing or invalid. Refresh the page and try again.</p></section>',
   );
 }
@@ -356,7 +572,7 @@ function isFirestoreDisabledError(error) {
 }
 
 function authRequired(req, res) {
-  if (req.session.user) {
+  if (hasValidSessionUser(req)) {
     return true;
   }
 
@@ -435,53 +651,90 @@ async function loginWithFirebase(email, password) {
 }
 
 function sanitizeRecipeForFavorite(meal) {
+  const recipeId = String(meal.idMeal || "");
   return {
-    recipeId: String(meal.idMeal || ""),
-    title: String(meal.strMeal || "Untitled Recipe"),
-    image: String(meal.strMealThumb || ""),
-    category: String(meal.strCategory || ""),
+    recipeId,
+    title: sanitizeSingleLine(meal.strMeal || "Untitled Recipe", MAX_TITLE_LENGTH) || "Untitled Recipe",
+    image: safeHttpUrl(meal.strMealThumb || ""),
+    category: sanitizeSingleLine(meal.strCategory || "", MAX_CATEGORY_LENGTH),
     source: "themealdb",
     addedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 }
 
 function customRecipeDoc(data) {
-  const title = String(data.title || "").trim();
-  const ingredientsRaw = String(data.ingredients || "");
-  const instructions = String(data.instructions || "").trim();
+  const title = sanitizeSingleLine(data.title, MAX_TITLE_LENGTH);
+  const ingredientsRaw = sanitizeMultiline(data.ingredients, MAX_INSTRUCTIONS_LENGTH);
+  const instructions = sanitizeMultiline(data.instructions, MAX_INSTRUCTIONS_LENGTH);
 
-  if (!title || !ingredientsRaw.trim() || !instructions) {
+  if (title.length < 3 || !ingredientsRaw.trim() || instructions.length < 20) {
     return null;
   }
 
-  const prep = Number.parseInt(String(data.prepTime || "").trim(), 10);
-  const servings = Number.parseInt(String(data.servings || "").trim(), 10);
+  const ingredients = ingredientsRaw
+    .split(/\r\n|\n|\r/)
+    .map((s) => sanitizeSingleLine(s, MAX_INGREDIENT_LINE_LENGTH))
+    .filter(Boolean)
+    .slice(0, MAX_INGREDIENT_LINES);
+  if (ingredients.length === 0) {
+    return null;
+  }
+
+  const prep = parseBoundedInt(data.prepTime, 0, 1440);
+  const servings = parseBoundedInt(data.servings, 1, 100);
+  const tags = sanitizeSingleLine(data.tags, 400)
+    .split(",")
+    .map((s) => sanitizeSingleLine(s, MAX_TAG_LENGTH))
+    .filter(Boolean)
+    .slice(0, MAX_TAG_COUNT);
 
   return {
     title,
-    description: String(data.description || "").trim(),
-    ingredients: ingredientsRaw
-      .split(/\r\n|\n|\r/)
-      .map((s) => s.trim())
-      .filter(Boolean),
+    description: sanitizeMultiline(data.description, MAX_DESCRIPTION_LENGTH),
+    ingredients,
     instructions,
-    prepTime: Number.isNaN(prep) ? null : prep,
-    servings: Number.isNaN(servings) ? null : servings,
-    tags: String(data.tags || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
+    prepTime: prep,
+    servings,
+    tags,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 }
 
 function inlineValidationHtml(message, valid = false) {
   const tone = valid ? "valid" : "invalid";
-  return `<p class="inline-validation ${tone}" role="status">${message}</p>`;
+  return `<p class="inline-validation ${tone}" role="status">${escapeHtml(message)}</p>`;
 }
 
 function isEmailLike(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function rejectUnexpectedQueryParams(allowList) {
+  return (req, res, next) => {
+    for (const key of Object.keys(req.query || {})) {
+      if (!allowList.has(key)) {
+        return res.status(htmxFriendlyStatus(req, 400)).send(
+          '<section class="panel" role="alert"><h1>Invalid request</h1><p>Unsupported query parameter.</p></section>',
+        );
+      }
+    }
+
+    return next();
+  };
+}
+
+async function getUserSubcollectionDocs(uid, subcollectionName, maxDocs = MAX_USER_DOCS_PER_COLLECTION) {
+  const safeUid = String(uid || "").trim();
+  const safeSubcollection = String(subcollectionName || "").trim();
+  if (!safeUid || !ALLOWED_USER_SUBCOLLECTIONS.has(safeSubcollection)) {
+    throw new Error("Invalid Firestore user collection request");
+  }
+
+  const boundedMax = Number.isInteger(maxDocs)
+    ? Math.min(Math.max(maxDocs, 1), MAX_USER_DOCS_PER_COLLECTION)
+    : MAX_USER_DOCS_PER_COLLECTION;
+
+  return db.collection("users").doc(safeUid).collection(safeSubcollection).limit(boundedMax).get();
 }
 
 async function renderNav(res, req) {
@@ -525,7 +778,7 @@ app.get("/pages/home", async (req, res) => {
   const favoriteIds = new Set();
 
   if (req.session.user) {
-    const snap = await db.collection("users").doc(req.session.user.uid).collection("favorites").get();
+    const snap = await getUserSubcollectionDocs(req.session.user.uid, "favorites");
     snap.forEach((doc) => {
       const value = doc.data()?.recipeId;
       if (value) favoriteIds.add(String(value));
@@ -540,11 +793,17 @@ app.get("/pages/home", async (req, res) => {
   });
 });
 
-app.get("/search", async (req, res) => {
-  const query = String(req.query.q || "").trim();
-  const category = String(req.query.category || "").trim();
-  const page = Math.max(1, Number.parseInt(String(req.query.page || "1"), 10) || 1);
+app.get("/search", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.search), async (req, res) => {
+  const query = sanitizeSingleLine(req.query.q, MAX_QUERY_LENGTH);
+  const category = sanitizeSingleLine(req.query.category, MAX_CATEGORY_LENGTH);
+  const page = Math.min(20, parsePositiveInt(req.query.page, 1));
   const perPage = 6;
+
+  if (query && category) {
+    return res.status(htmxFriendlyStatus(req, 400)).send(
+      '<section class="panel" role="alert"><h1>Invalid request</h1><p>Choose search text or a category, not both.</p></section>',
+    );
+  }
 
   let meals = [];
   let title = "Search Recipes";
@@ -562,7 +821,7 @@ app.get("/search", async (req, res) => {
 
   const favoriteIds = new Set();
   if (req.session.user) {
-    const snap = await db.collection("users").doc(req.session.user.uid).collection("favorites").get();
+    const snap = await getUserSubcollectionDocs(req.session.user.uid, "favorites");
     snap.forEach((doc) => {
       const value = doc.data()?.recipeId;
       if (value) favoriteIds.add(String(value));
@@ -581,8 +840,8 @@ app.get("/search", async (req, res) => {
   });
 });
 
-app.get("/validate/auth/email", (req, res) => {
-  const email = String(req.query.email || "").trim();
+app.get("/validate/auth/email", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validateEmail), (req, res) => {
+  const email = sanitizeSingleLine(req.query.email, 254).toLowerCase();
   if (!email) {
     return res.send(inlineValidationHtml("Email is required."));
   }
@@ -592,7 +851,7 @@ app.get("/validate/auth/email", (req, res) => {
   return res.send(inlineValidationHtml("Email looks good.", true));
 });
 
-app.get("/validate/auth/password", (req, res) => {
+app.get("/validate/auth/password", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validatePassword), (req, res) => {
   const password = String(req.query.password || "");
   if (!password) {
     return res.send(inlineValidationHtml("Password is required."));
@@ -603,8 +862,8 @@ app.get("/validate/auth/password", (req, res) => {
   return res.send(inlineValidationHtml("Password length is valid.", true));
 });
 
-app.get("/validate/auth/username", (req, res) => {
-  const username = String(req.query.username || "").trim();
+app.get("/validate/auth/username", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validateUsername), (req, res) => {
+  const username = sanitizeSingleLine(req.query.username, MAX_USERNAME_LENGTH);
   if (!username) {
     return res.send(inlineValidationHtml("Username is required."));
   }
@@ -614,8 +873,8 @@ app.get("/validate/auth/username", (req, res) => {
   return res.send(inlineValidationHtml("Username looks good.", true));
 });
 
-app.get("/validate/recipe/title", (req, res) => {
-  const title = String(req.query.title || "").trim();
+app.get("/validate/recipe/title", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validateRecipeTitle), (req, res) => {
+  const title = sanitizeSingleLine(req.query.title, MAX_TITLE_LENGTH);
   if (!title) {
     return res.send(inlineValidationHtml("Title is required."));
   }
@@ -625,8 +884,11 @@ app.get("/validate/recipe/title", (req, res) => {
   return res.send(inlineValidationHtml("Title looks good.", true));
 });
 
-app.get("/validate/recipe/ingredients", (req, res) => {
-  const raw = String(req.query.ingredients || "");
+app.get(
+  "/validate/recipe/ingredients",
+  rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validateRecipeIngredients),
+  (req, res) => {
+  const raw = sanitizeMultiline(req.query.ingredients, MAX_INSTRUCTIONS_LENGTH);
   const count = raw
     .split(/\r\n|\n|\r/)
     .map((item) => item.trim())
@@ -636,10 +898,14 @@ app.get("/validate/recipe/ingredients", (req, res) => {
     return res.send(inlineValidationHtml("Add at least one ingredient."));
   }
   return res.send(inlineValidationHtml(`${count} ingredient${count === 1 ? "" : "s"} listed.`, true));
-});
+  },
+);
 
-app.get("/validate/recipe/instructions", (req, res) => {
-  const instructions = String(req.query.instructions || "").trim();
+app.get(
+  "/validate/recipe/instructions",
+  rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.validateRecipeInstructions),
+  (req, res) => {
+  const instructions = sanitizeMultiline(req.query.instructions, MAX_INSTRUCTIONS_LENGTH);
   if (!instructions) {
     return res.send(inlineValidationHtml("Instructions are required."));
   }
@@ -647,10 +913,17 @@ app.get("/validate/recipe/instructions", (req, res) => {
     return res.send(inlineValidationHtml("Add a bit more detail (20+ chars)."));
   }
   return res.send(inlineValidationHtml("Instructions look good.", true));
-});
+  },
+);
 
 app.get("/recipe/:id", async (req, res) => {
   const id = String(req.params.id || "");
+  if (!isMealId(id)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send(
+      '<section class="panel" role="alert"><h1>Invalid recipe id</h1><p>Please open a valid recipe.</p></section>',
+    );
+  }
+
   const meal = await mealById(id);
 
   if (!meal) {
@@ -674,16 +947,22 @@ app.get("/recipe/:id", async (req, res) => {
     meal,
     ingredients: parseIngredients(meal),
     favorite,
+    sourceUrl: safeHttpUrl(meal.strSource),
+    youtubeUrl: safeHttpUrl(meal.strYoutube),
     user: req.session.user || null,
   });
 });
 
-app.patch("/favorites/:id", async (req, res) => {
+app.patch("/favorites/:id", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
   }
 
   const id = String(req.params.id || "");
+  if (!isMealId(id)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
+  }
+
   const favRef = db.collection("users").doc(req.session.user.uid).collection("favorites").doc(id);
   const existing = await favRef.get();
 
@@ -692,9 +971,9 @@ app.patch("/favorites/:id", async (req, res) => {
     return res.render("partials/favorite-action", {
       mealId: id,
       isFavorite: false,
-      title: req.body.title || "Recipe",
-      image: req.body.image || "",
-      category: req.body.category || "",
+      title: sanitizeSingleLine(req.body.title || "Recipe", MAX_TITLE_LENGTH) || "Recipe",
+      image: safeHttpUrl(req.body.image || ""),
+      category: sanitizeSingleLine(req.body.category || "", MAX_CATEGORY_LENGTH),
     });
   }
 
@@ -715,12 +994,16 @@ app.patch("/favorites/:id", async (req, res) => {
   });
 });
 
-app.post("/favorites/:id", async (req, res) => {
+app.post("/favorites/:id", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
   }
 
   const id = String(req.params.id || "");
+  if (!isMealId(id)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
+  }
+
   const favoriteDoc = sanitizeRecipeForFavorite({
     idMeal: id,
     strMeal: req.body.title,
@@ -730,7 +1013,7 @@ app.post("/favorites/:id", async (req, res) => {
 
   await db.collection("users").doc(req.session.user.uid).collection("favorites").doc(id).set(favoriteDoc);
 
-  const items = await db.collection("users").doc(req.session.user.uid).collection("favorites").get();
+  const items = await getUserSubcollectionDocs(req.session.user.uid, "favorites");
   const favorites = items.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/favorites", {
@@ -740,15 +1023,19 @@ app.post("/favorites/:id", async (req, res) => {
   });
 });
 
-app.delete("/favorites/:id", async (req, res) => {
+app.delete("/favorites/:id", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
   }
 
   const id = String(req.params.id || "");
+  if (!isMealId(id)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
+  }
+
   await db.collection("users").doc(req.session.user.uid).collection("favorites").doc(id).delete();
 
-  const items = await db.collection("users").doc(req.session.user.uid).collection("favorites").get();
+  const items = await getUserSubcollectionDocs(req.session.user.uid, "favorites");
   const favorites = items.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/favorites", {
@@ -763,7 +1050,7 @@ app.get("/favorites", async (req, res) => {
     return;
   }
 
-  const items = await db.collection("users").doc(req.session.user.uid).collection("favorites").get();
+  const items = await getUserSubcollectionDocs(req.session.user.uid, "favorites");
   const favorites = items.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/favorites", {
@@ -778,7 +1065,7 @@ app.get("/my-recipes", async (req, res) => {
     return;
   }
 
-  const snap = await db.collection("users").doc(req.session.user.uid).collection("customRecipes").get();
+  const snap = await getUserSubcollectionDocs(req.session.user.uid, "customRecipes");
   const recipes = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
 
   res.render("partials/my-recipes", {
@@ -794,18 +1081,23 @@ app.get("/my-recipes/:id/edit", async (req, res) => {
     return;
   }
 
+  const recipeId = String(req.params.id || "");
+  if (!isFirestoreId(recipeId)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
+  }
+
   const docSnap = await db
     .collection("users")
     .doc(req.session.user.uid)
     .collection("customRecipes")
-    .doc(req.params.id)
+    .doc(recipeId)
     .get();
 
   if (!docSnap.exists) {
     return res.status(404).send('<p role="alert">Recipe not found.</p>');
   }
 
-  const snap = await db.collection("users").doc(req.session.user.uid).collection("customRecipes").get();
+  const snap = await getUserSubcollectionDocs(req.session.user.uid, "customRecipes");
   const recipes = snap.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   return res.render("partials/my-recipes", {
@@ -816,7 +1108,7 @@ app.get("/my-recipes/:id/edit", async (req, res) => {
   });
 });
 
-app.post("/my-recipes", async (req, res) => {
+app.post("/my-recipes", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
   }
@@ -830,7 +1122,7 @@ app.post("/my-recipes", async (req, res) => {
 
   await db.collection("users").doc(req.session.user.uid).collection("customRecipes").add(payload);
 
-  const snap = await db.collection("users").doc(req.session.user.uid).collection("customRecipes").get();
+  const snap = await getUserSubcollectionDocs(req.session.user.uid, "customRecipes");
   const recipes = snap.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/my-recipes", {
@@ -841,9 +1133,14 @@ app.post("/my-recipes", async (req, res) => {
   });
 });
 
-app.put("/my-recipes/:id", async (req, res) => {
+app.put("/my-recipes/:id", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
+  }
+
+  const recipeId = String(req.params.id || "");
+  if (!isFirestoreId(recipeId)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
   }
 
   const payload = customRecipeDoc(req.body);
@@ -851,11 +1148,11 @@ app.put("/my-recipes/:id", async (req, res) => {
     return res.status(400).send('<p role="alert">Title, ingredients, and instructions are required.</p>');
   }
 
-  await db.collection("users").doc(req.session.user.uid).collection("customRecipes").doc(req.params.id).set(payload, {
+  await db.collection("users").doc(req.session.user.uid).collection("customRecipes").doc(recipeId).set(payload, {
     merge: true,
   });
 
-  const snap = await db.collection("users").doc(req.session.user.uid).collection("customRecipes").get();
+  const snap = await getUserSubcollectionDocs(req.session.user.uid, "customRecipes");
   const recipes = snap.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/my-recipes", {
@@ -866,14 +1163,19 @@ app.put("/my-recipes/:id", async (req, res) => {
   });
 });
 
-app.delete("/my-recipes/:id", async (req, res) => {
+app.delete("/my-recipes/:id", writeRateLimit, async (req, res) => {
   if (!authRequired(req, res)) {
     return;
   }
 
-  await db.collection("users").doc(req.session.user.uid).collection("customRecipes").doc(req.params.id).delete();
+  const recipeId = String(req.params.id || "");
+  if (!isFirestoreId(recipeId)) {
+    return res.status(htmxFriendlyStatus(req, 400)).send('<p role="alert">Invalid recipe id.</p>');
+  }
 
-  const snap = await db.collection("users").doc(req.session.user.uid).collection("customRecipes").get();
+  await db.collection("users").doc(req.session.user.uid).collection("customRecipes").doc(recipeId).delete();
+
+  const snap = await getUserSubcollectionDocs(req.session.user.uid, "customRecipes");
   const recipes = snap.docs.map((item) => ({ id: item.id, ...item.data() }));
 
   res.render("partials/my-recipes", {
@@ -884,7 +1186,7 @@ app.delete("/my-recipes/:id", async (req, res) => {
   });
 });
 
-app.get("/auth", (req, res) => {
+app.get("/auth", rejectUnexpectedQueryParams(ALLOWED_QUERY_KEYS.auth), (req, res) => {
   const mode = req.query.mode === "signup" ? "signup" : "login";
   res.render("partials/auth", {
     mode,
@@ -893,16 +1195,24 @@ app.get("/auth", (req, res) => {
   });
 });
 
-app.post("/auth/signup", async (req, res) => {
-  const email = String(req.body.email || "").trim();
+app.post("/auth/signup", authRateLimit, async (req, res) => {
+  const email = sanitizeSingleLine(req.body.email, 254).toLowerCase();
   const password = String(req.body.password || "");
-  const username = String(req.body.username || "").trim();
+  const username = sanitizeSingleLine(req.body.username, MAX_USERNAME_LENGTH);
   const nextPath = normalizeNextPath(req.body.next);
 
   if (!email || !password || !username) {
     return res.status(htmxFriendlyStatus(req, 400)).render("partials/auth", {
       mode: "signup",
       message: "All signup fields are required.",
+      nextPath,
+    });
+  }
+
+  if (!isEmailLike(email) || password.length < 6) {
+    return res.status(htmxFriendlyStatus(req, 400)).render("partials/auth", {
+      mode: "signup",
+      message: "Provide a valid email and a password with at least 6 characters.",
       nextPath,
     });
   }
@@ -950,18 +1260,14 @@ app.post("/auth/signup", async (req, res) => {
       }
     }
 
-    const code = error?.errorInfo?.code || "";
+    const code = String(error?.errorInfo?.code || "unknown");
+    const details = String(error?.message || "").slice(0, 180);
+    // eslint-disable-next-line no-console
+    console.error("Signup error", { code, details });
+
     let message = "Unable to create account with those credentials.";
     if (code.includes("email-already-exists")) {
       message = "That email is already registered. Please sign in instead.";
-    } else if (code.includes("invalid-password")) {
-      message = "Password must be at least 6 characters.";
-    } else if (code.includes("insufficient-permission")) {
-      message = "Firebase permissions are not configured for Auth user creation.";
-    } else if (code.includes("project-not-found") || code.includes("invalid-credential")) {
-      message = "Firebase credentials are invalid for this project.";
-    } else if (isFirestoreDisabledError(error)) {
-      message = "Cloud Firestore API is disabled for this project. Enable Firestore, wait a minute, and try again.";
     }
 
     res.status(htmxFriendlyStatus(req, 400)).render("partials/auth", {
@@ -972,8 +1278,8 @@ app.post("/auth/signup", async (req, res) => {
   }
 });
 
-app.post("/auth/login", async (req, res) => {
-  const email = String(req.body.email || "").trim();
+app.post("/auth/login", authRateLimit, async (req, res) => {
+  const email = sanitizeSingleLine(req.body.email, 254).toLowerCase();
   const password = String(req.body.password || "");
   const nextPath = normalizeNextPath(req.body.next);
 
@@ -981,6 +1287,14 @@ app.post("/auth/login", async (req, res) => {
     return res.status(htmxFriendlyStatus(req, 400)).render("partials/auth", {
       mode: "login",
       message: "Email and password are required.",
+      nextPath,
+    });
+  }
+
+  if (!isEmailLike(email) || password.length < 6) {
+    return res.status(htmxFriendlyStatus(req, 401)).render("partials/auth", {
+      mode: "login",
+      message: "Invalid email or password.",
       nextPath,
     });
   }
@@ -1017,49 +1331,20 @@ app.post("/auth/login", async (req, res) => {
       });
     }
   } catch (error) {
-    const code = String(error?.code || error?.errorInfo?.code || "");
-    const details = String(error?.message || "");
-    let message = `Login failed (${code || "no-code"}): ${details || "No error message returned."}`;
-    if (details.includes("EMAIL_NOT_FOUND")) {
-      message = "No account found with that email.";
-    } else if (details.includes("INVALID_LOGIN_CREDENTIALS")) {
-      message = "No matching account/password found. If signup previously failed, create account again after Firestore is enabled.";
-    } else if (details.includes("INVALID_PASSWORD")) {
-      message = "Firebase returned INVALID_PASSWORD (the account exists, but the submitted password was rejected).";
-    } else if (code.includes("auth/argument-error") || code.includes("auth/invalid-credential")) {
-      message = "Firebase token verification failed. Your FB_WEB_API_KEY and Admin SDK credentials are likely from different projects.";
-    } else if (code.includes("auth/id-token-expired")) {
-      message = "Sign-in token expired too quickly. Please try signing in again.";
-    } else if (code.includes("auth/id-token-revoked")) {
-      message = "Sign-in token was revoked. Please sign in again.";
-    } else if (code.includes("auth/project-not-found")) {
-      message = "Firebase Admin SDK project is invalid or does not exist.";
-    } else if (details.includes("USER_DISABLED")) {
-      message = "This account is disabled.";
-    } else if (details.includes("CONFIGURATION_NOT_FOUND")) {
-      message = "Email/password sign-in is disabled in Firebase Auth settings.";
-    } else if (details.includes("API key not valid")) {
-      message = "FB_WEB_API_KEY is invalid for this project.";
-    } else if (details.includes("incorrect \"aud\"") || details.includes("incorrect \"iss\"")) {
-      message = "Firebase project mismatch: FB_WEB_API_KEY and Admin SDK credentials appear to be from different Firebase projects.";
-    } else if (details.includes("auth/argument-error") || details.includes("Decoding Firebase ID token failed")) {
-      message = "The Firebase ID token could not be verified. Check FB_PROJECT_ID, FB_WEB_API_KEY, and Admin SDK credentials are for the same project.";
-    } else if (details.includes("fetch failed") || details.includes("ENOTFOUND") || details.includes("ECONNRESET")) {
-      message = "Temporary network issue while contacting Firebase Auth. Please try again.";
-    } else {
-      // eslint-disable-next-line no-console
-      console.error("Login error detail:", { code, details: details || String(error) });
-    }
+    const code = String(error?.code || error?.errorInfo?.code || "unknown");
+    const details = String(error?.message || "").slice(0, 180);
+    // eslint-disable-next-line no-console
+    console.error("Login error", { code, details });
 
     return res.status(htmxFriendlyStatus(req, 401)).render("partials/auth", {
       mode: "login",
-      message,
+      message: "Invalid email or password.",
       nextPath,
     });
   }
 });
 
-app.post("/auth/logout", (req, res) => {
+app.post("/auth/logout", writeRateLimit, (req, res) => {
   req.session.destroy(() => {
     res.render("partials/post-auth", {
       user: null,
@@ -1073,6 +1358,11 @@ app.use((err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
   }
+
+  const errorMessage = String(err?.message || "unexpected-error").slice(0, 200);
+  const errorCode = String(err?.code || err?.errorInfo?.code || "unknown").slice(0, 100);
+  // eslint-disable-next-line no-console
+  console.error("Unhandled request error", { errorCode, errorMessage, path: req.originalUrl, method: req.method });
 
   if (isFirestoreDisabledError(err)) {
     return res.status(500).send(
