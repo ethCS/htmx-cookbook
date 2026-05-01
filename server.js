@@ -11,7 +11,7 @@ import admin from "firebase-admin";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load both common local env files when available.
+// try both local env files if they exist
 for (const envFile of [".env", ".env.SECRET_KEYS"]) {
   const fullPath = path.join(__dirname, envFile);
   if (fs.existsSync(fullPath)) {
@@ -81,10 +81,10 @@ if (!admin.apps.length) {
       }),
     });
   } else if (!isManagedRuntime) {
-    // Local direct run without service-account env vars can still use ADC with explicit project id.
+    // local fallback if the service account vars arent set
     admin.initializeApp({ projectId: FB_PROJECT_ID });
   } else {
-    // In Cloud Run/Functions, rely on attached service account + runtime project metadata.
+    // on cloud run / functions this should use the attached service account
     admin.initializeApp();
   }
 }
@@ -223,7 +223,7 @@ app.use(
   session({
     store: sessionStore,
     name: SESSION_COOKIE_NAME,
-    // Keep import-time safe for Firebase deploy analysis; local runs validate before listen.
+    // keeps deploy checks from blowing up before the app actually starts
     secret: SESSION_SECRET || "import-time-placeholder-secret",
     resave: false,
     saveUninitialized: false,
@@ -275,7 +275,7 @@ function pruneRateLimitBuckets(now) {
     return;
   }
 
-  // If the map still exceeds cap (e.g., concentrated active abuse), drop oldest keys first.
+  // if this still gets huge, just drop the oldest ones first
   const overflow = RATE_LIMIT_BUCKETS.size - MAX_RATE_LIMIT_BUCKETS;
   let removed = 0;
   for (const key of RATE_LIMIT_BUCKETS.keys()) {
@@ -1310,7 +1310,7 @@ app.post("/auth/signup", authRateLimit, async (req, res) => {
       try {
         await admin.auth().deleteUser(createdUid);
       } catch {
-        // Ignore rollback errors; setup message below is still actionable.
+        // not much we can do here, the message below is still enough to debug it
       }
     }
 
@@ -1436,7 +1436,7 @@ app.use((req, res) => {
   res.status(404).send('<section class="panel" role="alert"><h1>Page not found</h1><p>The requested page was not found.</p></section>');
 });
 
-// Only start a local HTTP server when server.js is run directly (not imported).
+// only start the local server if this file was run directly
 if (isMain) {
   if (!isManagedRuntime) {
     validateLocalRuntimeEnv();

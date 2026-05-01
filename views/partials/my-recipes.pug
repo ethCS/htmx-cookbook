@@ -64,7 +64,7 @@ section.page-authenticated(hx-history="false" aria-labelledby="my-recipes-title"
                       ) Delete
 
                   if recipe.description
-                    // User-generated content is wrapped in hx-disable to prevent HTMX attribute injection.
+                    // keeping htmx off here so weird user text cant sneak attrs in
                     p.meta(hx-disable)= recipe.description
 
                   if recipe.prepTime || recipe.servings || (recipe.tags && recipe.tags.length > 0)

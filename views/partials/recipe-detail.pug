@@ -44,7 +44,7 @@ section.recipe-detail(aria-labelledby="recipe-title")
 
     section(aria-labelledby="instructions-title")
       h2#instructions-title Instructions
-      // Third-party recipe text is wrapped in hx-disable to prevent HTMX attribute injection.
+      // same idea here, api text should stay plain and not act like htmx markup
       div(hx-disable)
         each paragraph in (meal.strInstructions || "").split(/\r\n|\n|\r/).filter((line) => line.trim().length > 0)
           p= paragraph.trim()

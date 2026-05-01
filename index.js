@@ -1,5 +1,5 @@
-// Firebase Cloud Functions entry point.
-// Wraps the Express app as an HTTPS function so Firebase Hosting can proxy to it.
+// tiny firebase entry file
+// just hooks the express app into hosting / functions
 import { onRequest } from "firebase-functions/v2/https";
 import { app } from "./server.js";
 
