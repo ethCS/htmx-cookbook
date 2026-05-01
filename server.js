@@ -527,8 +527,36 @@ function sameOriginCheck(req) {
     return true;
   }
 
-  const expectedOrigin = `${req.protocol}://${req.get("host")}`;
-  return origin === expectedOrigin;
+  let parsedOrigin;
+  try {
+    parsedOrigin = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  if (!["http:", "https:"].includes(parsedOrigin.protocol)) {
+    return false;
+  }
+
+  const hostCandidates = new Set();
+  for (const rawValue of [req.get("host"), req.get("x-forwarded-host")]) {
+    if (!rawValue) {
+      continue;
+    }
+
+    for (const part of String(rawValue).split(",")) {
+      const host = part.trim().toLowerCase();
+      if (host) {
+        hostCandidates.add(host);
+      }
+    }
+  }
+
+  if (hostCandidates.size === 0) {
+    return false;
+  }
+
+  return hostCandidates.has(parsedOrigin.host.toLowerCase());
 }
 
 function requireCsrf(req, res, next) {
