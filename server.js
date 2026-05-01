@@ -497,6 +497,29 @@ function appendCookie(res, cookieValue) {
   res.setHeader("Set-Cookie", next);
 }
 
+function setCsrfCookie(res, csrfToken) {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  appendCookie(
+    res,
+    `csrfToken=${encodeURIComponent(csrfToken)}; Path=/; SameSite=Lax; Max-Age=7200${secure}`,
+  );
+}
+
+function publishCsrfToken(res, csrfToken) {
+  res.setHeader("X-CSRF-Token", csrfToken);
+  res.setHeader("Access-Control-Expose-Headers", "X-CSRF-Token");
+}
+
+function refreshCsrfToken(req, res) {
+  const csrfToken = crypto.randomBytes(24).toString("hex");
+  req.session.csrfToken = csrfToken;
+  req.csrfToken = csrfToken;
+  req.cookies = req.cookies || {};
+  req.cookies.csrfToken = csrfToken;
+  setCsrfCookie(res, csrfToken);
+  publishCsrfToken(res, csrfToken);
+}
+
 function issueCsrfCookie(req, res, next) {
   const cookies = parseCookies(req.headers.cookie || "");
   req.cookies = cookies;
@@ -511,12 +534,10 @@ function issueCsrfCookie(req, res, next) {
   req.cookies.csrfToken = csrfToken;
 
   if (cookies.csrfToken !== csrfToken) {
-    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-    appendCookie(
-      res,
-      `csrfToken=${encodeURIComponent(csrfToken)}; Path=/; SameSite=Lax; Max-Age=7200${secure}`,
-    );
+    setCsrfCookie(res, csrfToken);
   }
+
+  publishCsrfToken(res, csrfToken);
 
   return next();
 }
@@ -580,6 +601,10 @@ function requireCsrf(req, res, next) {
   const cookieToken = req.cookies?.csrfToken;
   const headerToken = req.get("X-CSRF-Token");
   const sessionToken = req.session?.csrfToken;
+
+  if (safeTokenMatch(headerToken, sessionToken)) {
+    return next();
+  }
 
   if (safeTokenMatch(cookieToken, sessionToken) && safeTokenMatch(headerToken, sessionToken)) {
     return next();
@@ -1258,6 +1283,7 @@ app.post("/auth/signup", authRateLimit, async (req, res) => {
     });
 
     await regenerateSession(req);
+    refreshCsrfToken(req, res);
 
     req.session.user = {
       uid: userRecord.uid,
@@ -1337,6 +1363,7 @@ app.post("/auth/login", authRateLimit, async (req, res) => {
     }
 
     await regenerateSession(req);
+    refreshCsrfToken(req, res);
 
     req.session.user = {
       uid: decoded.uid,

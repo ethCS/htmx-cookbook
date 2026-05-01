@@ -19,6 +19,23 @@ function getCookie(name) {
   return "";
 }
 
+let csrfTokenCache = "";
+
+function getCsrfToken() {
+  return csrfTokenCache || getCookie("csrfToken") || "";
+}
+
+function updateCsrfFromXhr(xhr) {
+  if (!xhr || typeof xhr.getResponseHeader !== "function") {
+    return;
+  }
+
+  const token = xhr.getResponseHeader("X-CSRF-Token");
+  if (token) {
+    csrfTokenCache = token;
+  }
+}
+
 function resolveInitialRoute() {
   const { pathname, search } = window.location;
   if (pathname === "/") {
@@ -49,10 +66,14 @@ document.body.addEventListener("htmx:configRequest", (event) => {
     return;
   }
 
-  const csrfToken = getCookie("csrfToken");
+  const csrfToken = getCsrfToken();
   if (csrfToken) {
     event.detail.headers["X-CSRF-Token"] = csrfToken;
   }
+});
+
+document.body.addEventListener("htmx:afterRequest", (event) => {
+  updateCsrfFromXhr(event.detail?.xhr);
 });
 
 document.body.addEventListener("click", (event) => {
